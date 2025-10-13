@@ -11,10 +11,10 @@ export function SiteFooter() {
             <Link href="/orders" className="block hover:opacity-70">
               Order Tracking
             </Link>
-            <Link href="#" className="block hover:opacity-70">
+            <Link href="/policies" className="block hover:opacity-70">
               Policies
             </Link>
-            <Link href="#" className="block hover:opacity-70">
+            <Link href="/faq" className="block hover:opacity-70">
               FAQ's
             </Link>
           </div>
@@ -37,7 +37,7 @@ export function SiteFooter() {
 
           <div className="space-y-2 md:items-end md:text-right">
             <div className="caps-tight text-[12px]">Information</div>
-            <Link href="#" className="block hover:opacity-70">
+            <Link href="/about" className="block hover:opacity-70">
               Our Story
             </Link>
             <div className="block">

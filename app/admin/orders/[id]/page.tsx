@@ -384,7 +384,9 @@ export default function AdminOrderDetailPage() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Payment Method</span>
                   <Badge variant="outline">
-                    {order.paymentMethod.toUpperCase()}
+                    {order.paymentMethod === "bank_transfer" 
+                      ? "Bank Transfer" 
+                      : order.paymentMethod.toUpperCase()}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between text-sm">

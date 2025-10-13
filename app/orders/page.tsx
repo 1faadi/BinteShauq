@@ -176,7 +176,9 @@ export default function OrdersPage() {
                       {order.status}
                     </Badge>
                     <Badge variant="outline">
-                      {order.paymentMethod.toUpperCase()}
+                      {order.paymentMethod === "bank_transfer" 
+                        ? "Bank Transfer" 
+                        : order.paymentMethod.toUpperCase()}
                     </Badge>
                   </div>
                 </div>

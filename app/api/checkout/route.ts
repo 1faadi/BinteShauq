@@ -12,11 +12,18 @@ export async function POST(req: NextRequest) {
 
     const { items, paymentMethod } = await req.json()
 
-    // If payment method is COD, no need for Stripe
+    // If payment method is COD or Bank Transfer, no need for Stripe
     if (paymentMethod === "cod") {
       return NextResponse.json({ 
         success: true,
         message: "COD order will be processed" 
+      })
+    }
+
+    if (paymentMethod === "bank_transfer") {
+      return NextResponse.json({ 
+        success: true,
+        message: "Bank transfer order will be processed. Please transfer the amount and share the receipt." 
       })
     }
 

@@ -250,7 +250,11 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
               </div>
               <div className="flex items-center justify-between">
                 <span>Payment Method</span>
-                <span className="font-medium">{order.paymentMethod.toUpperCase()}</span>
+                <span className="font-medium">
+                  {order.paymentMethod === "bank_transfer" 
+                    ? "Bank Transfer" 
+                    : order.paymentMethod.toUpperCase()}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Payment Status</span>
@@ -258,6 +262,23 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                   {order.paymentStatus}
                 </Badge>
               </div>
+              
+              {order.paymentMethod === "bank_transfer" && order.paymentStatus === "pending" && (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-900 font-medium mb-2">
+                    Bank Transfer Instructions:
+                  </p>
+                  <div className="text-xs text-amber-800 space-y-1">
+                    <p><strong>Bank:</strong> HBL Bank</p>
+                    <p><strong>Account Title:</strong> SADIA ISMAIL</p>
+                    <p><strong>Account Number:</strong> 50367106426261</p>
+                    <p><strong>IBAN:</strong> PK48HABB0050367106426261</p>
+                  </div>
+                  <p className="text-xs text-amber-900 mt-3 italic">
+                    Please share the transaction receipt along with your Order ID at binteshauq@gmail.com
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

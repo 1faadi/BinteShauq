@@ -293,7 +293,9 @@ export default function AdminOrders() {
                         {order.paymentStatus}
                       </Badge>
                       <p className="text-xs text-muted-foreground">
-                        {order.paymentMethod.toUpperCase()}
+                        {order.paymentMethod === "bank_transfer" 
+                          ? "Bank Transfer" 
+                          : order.paymentMethod.toUpperCase()}
                       </p>
                     </div>
                   </TableCell>

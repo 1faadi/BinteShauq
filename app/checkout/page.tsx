@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { ArrowLeft, CreditCard, Banknote } from "lucide-react"
+import { ArrowLeft, Building2, Banknote } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { toast } from "sonner"
@@ -257,16 +257,16 @@ export default function CheckoutPage() {
               <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="cod" id="cod" />
-                  <Label htmlFor="cod" className="flex items-center gap-2">
+                  <Label htmlFor="cod" className="flex items-center gap-2 cursor-pointer">
                     <Banknote className="h-4 w-4" />
                     Cash on Delivery (COD)
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="stripe" id="stripe" />
-                  <Label htmlFor="stripe" className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4" />
-                    Credit/Debit Card (Stripe)
+                  <RadioGroupItem value="bank_transfer" id="bank_transfer" />
+                  <Label htmlFor="bank_transfer" className="flex items-center gap-2 cursor-pointer">
+                    <Building2 className="h-4 w-4" />
+                    Bank Transfer
                   </Label>
                 </div>
               </RadioGroup>
@@ -275,6 +275,35 @@ export default function CheckoutPage() {
                 <div className="mt-4 p-4 bg-muted rounded-lg">
                   <p className="text-sm text-muted-foreground">
                     Pay with cash when your order is delivered. No additional charges.
+                  </p>
+                </div>
+              )}
+              
+              {paymentMethod === "bank_transfer" && (
+                <div className="mt-4 p-4 bg-muted rounded-lg border-2 border-primary/20">
+                  <p className="font-semibold text-sm mb-3 uppercase tracking-wide">
+                    Bank Details for Online Payments:
+                  </p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-muted-foreground">Bank:</span>
+                      <span className="font-semibold">HBL Bank</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-muted-foreground">Account Title:</span>
+                      <span className="font-semibold">SADIA ISMAIL</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-muted-foreground">Account Number:</span>
+                      <span className="font-semibold">50367106426261</span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                      <span className="font-medium text-muted-foreground">IBAN:</span>
+                      <span className="font-semibold">PK48HABB0050367106426261</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-4 italic">
+                    After making the payment, please share the transaction receipt along with your Order ID at binteshauq@gmail.com
                   </p>
                 </div>
               )}
@@ -325,8 +354,14 @@ export default function CheckoutPage() {
                   <span>Free</span>
                 </div>
                 {paymentMethod === "cod" && (
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm">
                     <span>COD Charges</span>
+                    <span>Rs. 0</span>
+                  </div>
+                )}
+                {paymentMethod === "bank_transfer" && (
+                  <div className="flex justify-between text-sm">
+                    <span>Bank Transfer Fee</span>
                     <span>Rs. 0</span>
                   </div>
                 )}
