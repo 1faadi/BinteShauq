@@ -16,12 +16,12 @@ async function main() {
     },
     {
       id: "p2",
-      name: "Flora Deep Tones",
-      slug: "flora-deep-tones",
-      collection: "flora",
+      name: "Bloosom Mid-Night",
+      slug: "blossom-mid-night",
+      collection: "blossom",
       price: 8290,
-      images: ["/flora-shawl-1.jpg", "/flora-shawl-2.jpg", "/flora-shawl-3.jpg"],
-      description: "Deep floral tones with subtle sheen and stitched edge finishing.",
+      images: ["/midnight-shawl-1.jpg", "/midnight-shawl-2.jpg", "/midnight-shawl-3.jpg"],
+      description: "Deep midnight tones with subtle sheen and stitched edge finishing.",
     },
     {
       id: "p3",
@@ -31,15 +31,6 @@ async function main() {
       price: 8290,
       images: ["/moonlight-shawl-1.jpg", "/moonlight-shawl-2.jpg", "/moonlight-shawl-3.jpg"],
       description: "Silvery moonlight palette with featherweight warmth for winter evenings.",
-    },
-    {
-      id: "p4",
-      name: "Linear Contemporary",
-      slug: "linear-contemporary",
-      collection: "linear",
-      price: 8990,
-      images: ["/linear-shawl-1.jpg", "/linear-shawl-2.jpg", "/linear-shawl-3.jpg"],
-      description: "Contemporary linear designs with clean geometric patterns and modern elegance.",
     },
   ]
 

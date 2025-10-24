@@ -560,11 +560,13 @@ function ProductForm({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="blossom">Blossom</SelectItem>
-              <SelectItem value="flora">Flora</SelectItem>
+              <SelectItem value="midnight">Midnight</SelectItem>
               <SelectItem value="moonlight">Moonlight</SelectItem>
               <SelectItem value="luxury">Luxury</SelectItem>
               <SelectItem value="classic">Classic</SelectItem>
+              <SelectItem value="modern">Modern</SelectItem>
               <SelectItem value="linear">Linear</SelectItem>
+              <SelectItem value="flora">Flora</SelectItem>
             </SelectContent>
           </Select>
         </div>
