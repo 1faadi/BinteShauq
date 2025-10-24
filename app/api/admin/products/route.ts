@@ -33,6 +33,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Set timeout for large uploads
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 60000) // 60 seconds
+
     const body = await request.json()
     const { 
       name, 
@@ -55,11 +59,23 @@ export async function POST(request: NextRequest) {
       uploadedImagesCount
     } = body
 
-    // Generate slug from name
-    const slug = name
+    // Generate unique slug from name
+    const baseSlug = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "")
+    
+    // Check if slug exists and make it unique
+    let slug = baseSlug
+    let counter = 1
+    while (true) {
+      const existingProduct = await prisma.product.findUnique({
+        where: { slug }
+      })
+      if (!existingProduct) break
+      slug = `${baseSlug}-${counter}`
+      counter++
+    }
 
     // If imageData (base64 array JSON) is provided, also populate images[] with it
     let imagesArray = Array.isArray(images) ? images : []
@@ -98,11 +114,33 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // Clear timeout
+    clearTimeout(timeoutId)
+
     return NextResponse.json(product)
   } catch (error) {
     console.error("Create product error:", error)
+    
+    // Clear timeout on error
+    if (timeoutId) clearTimeout(timeoutId)
+    
+    // Provide more specific error messages
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { error: "A product with this name already exists" },
+        { status: 409 }
+      )
+    }
+    
+    if (error.name === 'AbortError') {
+      return NextResponse.json(
+        { error: "Request timeout - try uploading fewer images or smaller file sizes" },
+        { status: 408 }
+      )
+    }
+    
     return NextResponse.json(
-      { error: "Failed to create product" },
+      { error: "Failed to create product", details: error.message },
       { status: 500 }
     )
   }
