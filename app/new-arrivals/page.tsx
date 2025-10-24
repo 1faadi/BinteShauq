@@ -1,6 +1,5 @@
 import { ProductCard } from "@/components/product-card"
-import { getProductImages, getProductImage } from "@/lib/data"
-import { prisma } from "@/lib/prisma"
+import { getProductImages, getProductImage, getProducts } from "@/lib/data"
 
 // Make this page dynamic to avoid large static generation
 export const dynamic = 'force-dynamic'
@@ -9,23 +8,10 @@ export default async function NewArrivalsPage() {
   let items: any[] = []
   
   try {
-    items = await prisma.product.findMany({
-      where: {
-        isNewArrival: true,
-        inStock: true,
-      },
-      orderBy: { createdAt: "desc" },
-      // Only select necessary fields to reduce payload size
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        price: true,
-        images: true,
-        imageData: true,
-        createdAt: true,
-      },
-    })
+    // Use optimized getProducts function with caching
+    items = await getProducts(undefined, undefined, undefined, false)
+    // Filter for new arrivals
+    items = items.filter(item => item.isNewArrival)
   } catch (error) {
     console.error("Error fetching new arrivals:", error)
     items = []

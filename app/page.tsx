@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Star, Truck, Shield, Headphones } from "lucide-react"
-import { getProductImage } from "@/lib/data"
-import { prisma } from "@/lib/prisma"
+import { getProductImage, getProducts } from "@/lib/data"
 
 // Make this page dynamic to avoid build-time database calls
 export const dynamic = 'force-dynamic'
@@ -14,14 +13,8 @@ export default async function HomePage() {
   let featuredProducts: any[] = []
   
   try {
-    featuredProducts = await prisma.product.findMany({
-      where: { 
-        isFeatured: true,
-        inStock: true 
-      },
-      orderBy: { createdAt: "desc" },
-      take: 3,
-    })
+    // Use optimized getProducts function with caching
+    featuredProducts = await getProducts(undefined, undefined, 3, false, true)
   } catch (error) {
     console.error("Error fetching featured products:", error)
     // Fallback to empty array if database is not available

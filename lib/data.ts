@@ -1,4 +1,5 @@
 import { prisma } from "./prisma"
+import { cache } from "./cache"
 
 export type Product = {
   id: string
@@ -24,12 +25,25 @@ export type Product = {
 }
 
 // Server-side functions for fetching products
-export async function getProducts(sort?: string, collection?: string, limit?: number): Promise<Product[]> {
+export async function getProducts(sort?: string, collection?: string, limit?: number, includeImageData: boolean = false, featured?: boolean): Promise<Product[]> {
   try {
+    // Create cache key
+    const cacheKey = `products-${sort || 'default'}-${collection || 'all'}-${limit || 'all'}-${includeImageData ? 'with-images' : 'no-images'}-${featured ? 'featured' : 'all'}`
+    
+    // Try cache first
+    const cached = cache.get<Product[]>(cacheKey)
+    if (cached) {
+      return cached
+    }
+
     let whereClause: any = { inStock: true }
     
     if (collection) {
       whereClause.collection = collection
+    }
+    
+    if (featured) {
+      whereClause.isFeatured = true
     }
 
     let orderBy: any = { createdAt: "desc" }
@@ -51,38 +65,44 @@ export async function getProducts(sort?: string, collection?: string, limit?: nu
         break
     }
 
+    // Build select object dynamically to exclude imageData when not needed
+    const selectFields: any = {
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      price: true,
+      images: true,
+      collection: true,
+      inStock: true,
+      isFeatured: true,
+      isNewArrival: true,
+      articleName: true,
+      color: true,
+      fabric: true,
+      embroidery: true,
+      shawlLength: true,
+      suitFabric: true,
+      usage: true,
+      care: true,
+      createdAt: true,
+      updatedAt: true,
+    }
+
+    // Only include imageData if specifically requested
+    if (includeImageData) {
+      selectFields.imageData = true
+    }
+
     const products = await prisma.product.findMany({
       where: whereClause,
       orderBy,
       take: limit || undefined,
-      // Only select necessary fields to reduce payload size
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        description: true,
-        price: true,
-        images: true,
-        imageData: true,
-        collection: true,
-        inStock: true,
-        isFeatured: true,
-        isNewArrival: true,
-        articleName: true,
-        color: true,
-        fabric: true,
-        embroidery: true,
-        shawlLength: true,
-        suitFabric: true,
-        usage: true,
-        care: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: selectFields,
     })
 
     // Convert Date objects to strings and null to undefined for serialization
-    return products.map(product => ({
+    const processedProducts: Product[] = products.map((product: any) => ({
       ...product,
       articleName: product.articleName ?? undefined,
       color: product.color ?? undefined,
@@ -92,10 +112,15 @@ export async function getProducts(sort?: string, collection?: string, limit?: nu
       suitFabric: product.suitFabric ?? undefined,
       usage: product.usage ?? undefined,
       care: product.care ?? undefined,
-      imageData: product.imageData ?? undefined,
+      imageData: includeImageData ? (product.imageData ?? undefined) : undefined,
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),
     }))
+
+    // Cache for 2 minutes
+    cache.set(cacheKey, processedProducts, 2 * 60 * 1000)
+    
+    return processedProducts
   } catch (error) {
     console.error('Error fetching products:', error)
     return []
@@ -104,6 +129,13 @@ export async function getProducts(sort?: string, collection?: string, limit?: nu
 
 export async function getBySlug(slug: string): Promise<Product | null> {
   try {
+    // Try cache first
+    const cacheKey = `product-${slug}`
+    const cached = cache.get<Product>(cacheKey)
+    if (cached) {
+      return cached
+    }
+
     const product = await prisma.product.findUnique({
       where: { slug },
     })
@@ -113,7 +145,7 @@ export async function getBySlug(slug: string): Promise<Product | null> {
     }
 
     // Convert Date objects to strings and null to undefined for serialization
-    return {
+    const processedProduct = {
       ...product,
       articleName: product.articleName ?? undefined,
       color: product.color ?? undefined,
@@ -127,6 +159,11 @@ export async function getBySlug(slug: string): Promise<Product | null> {
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),
     }
+
+    // Cache for 5 minutes
+    cache.set(cacheKey, processedProduct, 5 * 60 * 1000)
+    
+    return processedProduct
   } catch (error) {
     console.error('Error fetching product by slug:', error)
     return null
