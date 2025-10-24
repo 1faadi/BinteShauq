@@ -3,6 +3,9 @@ import { getProducts } from "@/lib/data"
 import { ProductCard } from "@/components/product-card"
 import { SortDropdown } from "@/components/sort-dropdown"
 
+// Make this page dynamic to avoid large static generation
+export const dynamic = 'force-dynamic'
+
 export default async function CollectionPage({
   params,
   searchParams,

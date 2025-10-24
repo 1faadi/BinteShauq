@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { ProductActions } from "./product-actions"
 
+// Make this page dynamic to avoid large static generation
+export const dynamic = 'force-dynamic'
+
 interface ProductPageProps {
   params: Promise<{ slug: string }>
 }

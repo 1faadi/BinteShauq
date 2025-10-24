@@ -55,6 +55,30 @@ export async function getProducts(sort?: string, collection?: string, limit?: nu
       where: whereClause,
       orderBy,
       take: limit || undefined,
+      // Only select necessary fields to reduce payload size
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        price: true,
+        images: true,
+        imageData: true,
+        collection: true,
+        inStock: true,
+        isFeatured: true,
+        isNewArrival: true,
+        articleName: true,
+        color: true,
+        fabric: true,
+        embroidery: true,
+        shawlLength: true,
+        suitFabric: true,
+        usage: true,
+        care: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     })
 
     // Convert Date objects to strings and null to undefined for serialization

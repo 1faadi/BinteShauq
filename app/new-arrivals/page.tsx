@@ -1,15 +1,36 @@
 import { ProductCard } from "@/components/product-card"
-import { getProductImages } from "@/lib/data"
+import { getProductImages, getProductImage } from "@/lib/data"
 import { prisma } from "@/lib/prisma"
 
+// Make this page dynamic to avoid large static generation
+export const dynamic = 'force-dynamic'
+
 export default async function NewArrivalsPage() {
-  const items = await prisma.product.findMany({
-    where: {
-      isNewArrival: true,
-      inStock: true,
-    },
-    orderBy: { createdAt: "desc" },
-  })
+  let items: any[] = []
+  
+  try {
+    items = await prisma.product.findMany({
+      where: {
+        isNewArrival: true,
+        inStock: true,
+      },
+      orderBy: { createdAt: "desc" },
+      // Only select necessary fields to reduce payload size
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        price: true,
+        images: true,
+        imageData: true,
+        createdAt: true,
+      },
+    })
+  } catch (error) {
+    console.error("Error fetching new arrivals:", error)
+    items = []
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-16">
       <h1 className="caps text-xl mb-6">New Arrivals</h1>
@@ -21,8 +42,8 @@ export default async function NewArrivalsPage() {
             slug={p.slug}
             name={p.name}
             price={p.price}
-            image={p.images?.[0]}
-            images={p.images}
+            image={getProductImage(p)}
+            images={getProductImages(p)}
           />
         ))}
       </div>
