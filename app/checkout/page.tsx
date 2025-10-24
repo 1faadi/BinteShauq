@@ -37,12 +37,15 @@ export default function CheckoutPage() {
   })
 
   useEffect(() => {
-    if (!session) {
+    if (session === null) {
+      // Session is explicitly null (not loading)
+      toast.error("Please sign in to continue with checkout")
       router.push("/auth/signin")
       return
     }
     
     if (items.length === 0) {
+      toast.error("Your cart is empty")
       router.push("/cart")
       return
     }
@@ -58,6 +61,7 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async () => {
     if (!session?.user) {
       toast.error("Please sign in to place an order")
+      router.push("/auth/signin")
       return
     }
 
@@ -101,14 +105,29 @@ export default function CheckoutPage() {
         toast.success("Order placed successfully!")
         router.push(`/orders/${order.id}`)
       } else {
-        const error = await response.json()
-        toast.error(error.error || "Failed to place order")
+        if (response.status === 401) {
+          toast.error("Session expired. Please sign in again.")
+          router.push("/auth/signin")
+        } else {
+          const error = await response.json()
+          toast.error(error.error || "Failed to place order")
+        }
       }
     } catch (error) {
-      toast.error("Failed to place order")
+      console.error("Order placement error:", error)
+      toast.error("Failed to place order. Please try again.")
     } finally {
       setIsProcessing(false)
     }
+  }
+
+  if (session === undefined) {
+    // Session is still loading
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    )
   }
 
   if (!session || items.length === 0) {
