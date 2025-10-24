@@ -13,10 +13,12 @@ import Image from "next/image"
 import { useState } from "react"
 import { toast } from "sonner"
 import { Logo } from "@/components/logo"
+import { useRouter } from "next/navigation"
 
 export default function CartPage() {
   const { items, updateQuantity, removeFromCart, getTotalPrice, isLoading } = useCart()
   const { data: session } = useSession()
+  const router = useRouter()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
 
   if (!session) {
@@ -80,8 +82,8 @@ export default function CartPage() {
   const handleCheckout = async () => {
     setIsCheckingOut(true)
     try {
-      // Redirect to checkout page
-      window.location.href = "/checkout"
+      // Use Next.js router for navigation to preserve cart state
+      router.push("/checkout")
     } catch (error) {
       toast.error("Failed to proceed to checkout")
     } finally {
