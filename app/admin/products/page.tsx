@@ -564,7 +564,7 @@ function ProductForm({
               <SelectItem value="moonlight">Moonlight</SelectItem>
               <SelectItem value="luxury">Luxury</SelectItem>
               <SelectItem value="classic">Classic</SelectItem>
-              <SelectItem value="lineae">Lineae</SelectItem>
+              <SelectItem value="linear">Linear</SelectItem>
             </SelectContent>
           </Select>
         </div>

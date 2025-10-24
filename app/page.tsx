@@ -156,7 +156,7 @@ export default async function HomePage() {
               selected to ensure the highest quality and authentic craftsmanship.
             </p>
             <p className="text-muted-foreground mb-6">
-              From the delicate beige tones to the rich midnight colors, our collection offers 
+              From the delicate beige tones to the rich flora colors, our collection offers 
               something for every occasion and personal style preference.
             </p>
             <Button asChild>
