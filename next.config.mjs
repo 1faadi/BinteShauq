@@ -9,17 +9,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  experimental: {
-    // Increase timeout for API routes
-    serverComponentsExternalPackages: ['@prisma/client'],
-  },
-  // Increase body size limit for large image uploads
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-    responseLimit: false,
-  },
+  // Move serverComponentsExternalPackages to the correct location
+  serverExternalPackages: ['@prisma/client'],
+  // Remove api config as it's not valid in Next.js 15
 }
 
 export default nextConfig

@@ -7,15 +7,26 @@ import { ArrowRight, Star, Truck, Shield, Headphones } from "lucide-react"
 import { getProductImage } from "@/lib/data"
 import { prisma } from "@/lib/prisma"
 
+// Make this page dynamic to avoid build-time database calls
+export const dynamic = 'force-dynamic'
+
 export default async function HomePage() {
-  const featuredProducts = await prisma.product.findMany({
-    where: { 
-      isFeatured: true,
-      inStock: true 
-    },
-    orderBy: { createdAt: "desc" },
-    take: 3,
-  })
+  let featuredProducts: any[] = []
+  
+  try {
+    featuredProducts = await prisma.product.findMany({
+      where: { 
+        isFeatured: true,
+        inStock: true 
+      },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+    })
+  } catch (error) {
+    console.error("Error fetching featured products:", error)
+    // Fallback to empty array if database is not available
+    featuredProducts = []
+  }
 
   return (
     <main className="mx-auto max-w-6xl px-4">

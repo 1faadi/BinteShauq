@@ -3,6 +3,9 @@ import { getProducts, getProductImage, getProductImages } from "@/lib/data"
 import { ProductCard } from "@/components/product-card"
 import { SortDropdown } from "@/components/sort-dropdown"
 
+// Make this page dynamic to avoid build-time database calls
+export const dynamic = 'force-dynamic'
+
 async function ShopContent() {
   const items = await getProducts()
   
