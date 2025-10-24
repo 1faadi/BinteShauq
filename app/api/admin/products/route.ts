@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { v2 as cloudinary } from 'cloudinary'
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
+})
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,6 +34,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // Set timeout for large uploads
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 60000) // 60 seconds
+  
   try {
     const session = await getServerSession(authOptions)
     
@@ -33,17 +45,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Set timeout for large uploads
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 60000) // 60 seconds
-
     const body = await request.json()
+    
     const { 
       name, 
       description, 
       price, 
       collection, 
-      images, 
+      images, // Array of Cloudinary URLs
       inStock,
       articleName,
       color,
@@ -54,9 +63,7 @@ export async function POST(request: NextRequest) {
       usage,
       care,
       isFeatured,
-      isNewArrival,
-      imageData,
-      uploadedImagesCount
+      isNewArrival
     } = body
 
     // Generate unique slug from name
@@ -77,19 +84,6 @@ export async function POST(request: NextRequest) {
       counter++
     }
 
-    // If imageData (base64 array JSON) is provided, also populate images[] with it
-    let imagesArray = Array.isArray(images) ? images : []
-    if (imageData) {
-      try {
-        const parsed = JSON.parse(imageData)
-        if (Array.isArray(parsed)) {
-          imagesArray = parsed
-        }
-      } catch (_) {
-        // ignore parsing errors; fallback to provided images
-      }
-    }
-
     const product = await prisma.product.create({
       data: {
         name,
@@ -97,8 +91,7 @@ export async function POST(request: NextRequest) {
         description,
         price: parseInt(price),
         collection,
-        images: imagesArray,
-        imageData: imageData || null,
+        images: Array.isArray(images) ? images : [],
         inStock: inStock ?? true,
         // Additional fields
         articleName,
@@ -122,17 +115,17 @@ export async function POST(request: NextRequest) {
     console.error("Create product error:", error)
     
     // Clear timeout on error
-    if (timeoutId) clearTimeout(timeoutId)
+    clearTimeout(timeoutId)
     
     // Provide more specific error messages
-    if (error.code === 'P2002') {
+    if ((error as any).code === 'P2002') {
       return NextResponse.json(
         { error: "A product with this name already exists" },
         { status: 409 }
       )
     }
     
-    if (error.name === 'AbortError') {
+    if ((error as any).name === 'AbortError') {
       return NextResponse.json(
         { error: "Request timeout - try uploading fewer images or smaller file sizes" },
         { status: 408 }
@@ -140,7 +133,65 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json(
-      { error: "Failed to create product", details: error.message },
+      { error: "Failed to create product", details: (error as any).message },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user?.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const productId = searchParams.get('id')
+
+    if (!productId) {
+      return NextResponse.json({ error: "Product ID is required" }, { status: 400 })
+    }
+
+    // Get the product first to access its images
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { images: true }
+    })
+
+    if (!product) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 })
+    }
+
+    // Delete images from Cloudinary
+    if (product.images && product.images.length > 0) {
+      try {
+        const deletePromises = product.images.map(async (imageUrl) => {
+          // Extract public_id from Cloudinary URL
+          const publicId = imageUrl.split('/').pop()?.split('.')[0]
+          if (publicId) {
+            return cloudinary.uploader.destroy(`binteshauq/products/${publicId}`)
+          }
+        })
+
+        await Promise.all(deletePromises)
+      } catch (cloudinaryError) {
+        console.error('Error deleting images from Cloudinary:', cloudinaryError)
+        // Continue with product deletion even if Cloudinary deletion fails
+      }
+    }
+
+    // Delete the product from database
+    await prisma.product.delete({
+      where: { id: productId }
+    })
+
+    return NextResponse.json({ success: true, message: "Product deleted successfully" })
+  } catch (error) {
+    console.error("Delete product error:", error)
+    return NextResponse.json(
+      { error: "Failed to delete product", details: (error as any).message },
       { status: 500 }
     )
   }

@@ -14,7 +14,7 @@ export default async function HomePage() {
   
   try {
     // Use optimized getProducts function with caching
-    featuredProducts = await getProducts(undefined, undefined, 3, false, true)
+    featuredProducts = await getProducts(undefined, undefined, 3, true)
   } catch (error) {
     console.error("Error fetching featured products:", error)
     // Fallback to empty array if database is not available

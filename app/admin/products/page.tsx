@@ -103,15 +103,15 @@ export default function AdminProducts() {
   }
 
   const handleDeleteProduct = async (productId: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return
+    if (!confirm("Are you sure you want to delete this product? This will also delete all associated images from Cloudinary.")) return
 
     try {
-      const response = await fetch(`/api/admin/products/${productId}`, {
+      const response = await fetch(`/api/admin/products?id=${productId}`, {
         method: "DELETE",
       })
 
       if (response.ok) {
-        toast.success("Product deleted successfully")
+        toast.success("Product and images deleted successfully")
         fetchProducts()
       } else {
         toast.error("Failed to delete product")
@@ -380,18 +380,55 @@ function ProductForm({
   const [uploadedImages, setUploadedImages] = useState<File[]>([])
   const [imagePreview, setImagePreview] = useState<string[]>([])
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     if (files.length > 0) {
-      setUploadedImages(files)
-      
       // Create preview URLs
       const previews = files.map(file => URL.createObjectURL(file))
-      setImagePreview(previews)
+      setImagePreview(prev => [...prev, ...previews])
+      setUploadedImages(prev => [...prev, ...files])
+
+      // Upload to Cloudinary
+      try {
+        const uploadPromises = files.map(async (file) => {
+          const formData = new FormData()
+          formData.append('file', file)
+
+          const response = await fetch('/api/upload/cloudinary', {
+            method: 'POST',
+            body: formData,
+          })
+
+          if (!response.ok) {
+            throw new Error('Upload failed')
+          }
+
+          const data = await response.json()
+          return data.url
+        })
+
+        const newCloudinaryUrls = await Promise.all(uploadPromises)
+
+        // Update formData.images directly with Cloudinary URLs
+        setFormData(prev => ({
+          ...prev,
+          images: [...prev.images, ...newCloudinaryUrls]
+        }))
+
+        // Clear uploaded images after successful upload
+        setUploadedImages([])
+        setImagePreview([])
+
+        toast.success(`${newCloudinaryUrls.length} image(s) uploaded successfully`)
+      } catch (error) {
+        console.error('Upload error:', error)
+        toast.error('Failed to upload images to Cloudinary')
+      }
     }
   }
 
   const removeImage = (index: number) => {
+    // Remove from preview arrays
     const newImages = uploadedImages.filter((_, i) => i !== index)
     const newPreviews = imagePreview.filter((_, i) => i !== index)
     
@@ -400,6 +437,17 @@ function ProductForm({
     
     setUploadedImages(newImages)
     setImagePreview(newPreviews)
+    
+    // Remove the corresponding Cloudinary URL from formData.images
+    // We need to find which Cloudinary URL corresponds to this preview
+    const uploadedUrls = formData.images.slice(-uploadedImages.length) // Get the last N URLs (newly uploaded)
+    const remainingUploadedUrls = uploadedUrls.filter((_, i) => i !== index)
+    const existingUrls = formData.images.slice(0, formData.images.length - uploadedImages.length)
+    
+    setFormData(prev => ({
+      ...prev,
+      images: [...existingUrls, ...remainingUploadedUrls]
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -407,22 +455,19 @@ function ProductForm({
     setIsSubmitting(true)
 
     try {
+      // Wait for any pending Cloudinary uploads to complete
+      if (uploadedImages.length > 0) {
+        toast.info("Please wait for images to finish uploading...")
+        setIsSubmitting(false)
+        return
+      }
+
       const url = product ? `/api/admin/products/${product.id}` : "/api/admin/products"
       const method = product ? "PUT" : "POST"
 
-      // Convert images to base64 if uploaded
-      let imageData = null
-      if (uploadedImages.length > 0) {
-        const base64Images = await Promise.all(
-          uploadedImages.map(file => {
-            return new Promise<string>((resolve) => {
-              const reader = new FileReader()
-              reader.onload = () => resolve(reader.result as string)
-              reader.readAsDataURL(file)
-            })
-          })
-        )
-        imageData = JSON.stringify(base64Images)
+      const payload = {
+        ...formData,
+        images: formData.images,
       }
 
       const response = await fetch(url, {
@@ -430,11 +475,7 @@ function ProductForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...formData,
-          imageData,
-          uploadedImagesCount: uploadedImages.length,
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (response.ok) {
@@ -602,10 +643,11 @@ function ProductForm({
           </div>
           
           {/* Image Previews */}
-          {imagePreview.length > 0 && (
+          {(imagePreview.length > 0 || (formData.images.length > 0 && product)) && (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {/* Show uploaded image previews */}
               {imagePreview.map((preview, index) => (
-                <div key={index} className="relative group">
+                <div key={`preview-${index}`} className="relative group">
                   <div className="aspect-square relative overflow-hidden rounded-lg border">
                     <Image
                       src={preview}
@@ -625,19 +667,37 @@ function ProductForm({
                   </Button>
                 </div>
               ))}
-            </div>
-          )}
-          
-          {/* Fallback URL input for existing products */}
-          {product && (
-            <div>
-              <Label htmlFor="imageUrls">Or use image URLs (comma-separated)</Label>
-              <Input
-                id="imageUrls"
-                value={formData.images.join(", ")}
-                onChange={(e) => setFormData({ ...formData, images: e.target.value.split(", ").filter(Boolean) })}
-                placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
-              />
+              
+              {/* Show all images from formData.images */}
+              {formData.images.map((imageUrl, index) => (
+                <div key={`image-${index}`} className="relative group">
+                  <div className="aspect-square relative overflow-hidden rounded-lg border">
+                    <Image
+                      src={imageUrl}
+                      alt={`Product image ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs">
+                    Saved
+                  </div>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => {
+                      setFormData(prev => ({
+                        ...prev,
+                        images: prev.images.filter((_, i) => i !== index)
+                      }))
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
           )}
         </div>

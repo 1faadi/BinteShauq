@@ -7,10 +7,11 @@ export type Product = {
   slug: string
   collection: string
   price: number
-  images: string[]
-  imageData?: string | null // Base64 encoded images
+  images: string[] // Cloudinary URLs
   description: string
   inStock: boolean
+  isFeatured?: boolean
+  isNewArrival?: boolean
   // Additional attributes from pd.md
   articleName?: string
   color?: string
@@ -25,10 +26,10 @@ export type Product = {
 }
 
 // Server-side functions for fetching products
-export async function getProducts(sort?: string, collection?: string, limit?: number, includeImageData: boolean = false, featured?: boolean): Promise<Product[]> {
+export async function getProducts(sort?: string, collection?: string, limit?: number, featured?: boolean): Promise<Product[]> {
   try {
     // Create cache key
-    const cacheKey = `products-${sort || 'default'}-${collection || 'all'}-${limit || 'all'}-${includeImageData ? 'with-images' : 'no-images'}-${featured ? 'featured' : 'all'}`
+    const cacheKey = `products-${sort || 'default'}-${collection || 'all'}-${limit || 'all'}-${featured ? 'featured' : 'all'}`
     
     // Try cache first
     const cached = cache.get<Product[]>(cacheKey)
@@ -65,40 +66,10 @@ export async function getProducts(sort?: string, collection?: string, limit?: nu
         break
     }
 
-    // Build select object dynamically to exclude imageData when not needed
-    const selectFields: any = {
-      id: true,
-      name: true,
-      slug: true,
-      description: true,
-      price: true,
-      images: true,
-      collection: true,
-      inStock: true,
-      isFeatured: true,
-      isNewArrival: true,
-      articleName: true,
-      color: true,
-      fabric: true,
-      embroidery: true,
-      shawlLength: true,
-      suitFabric: true,
-      usage: true,
-      care: true,
-      createdAt: true,
-      updatedAt: true,
-    }
-
-    // Only include imageData if specifically requested
-    if (includeImageData) {
-      selectFields.imageData = true
-    }
-
     const products = await prisma.product.findMany({
       where: whereClause,
       orderBy,
       take: limit || undefined,
-      select: selectFields,
     })
 
     // Convert Date objects to strings and null to undefined for serialization
@@ -112,7 +83,6 @@ export async function getProducts(sort?: string, collection?: string, limit?: nu
       suitFabric: product.suitFabric ?? undefined,
       usage: product.usage ?? undefined,
       care: product.care ?? undefined,
-      imageData: includeImageData ? (product.imageData ?? undefined) : undefined,
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),
     }))
@@ -155,7 +125,6 @@ export async function getBySlug(slug: string): Promise<Product | null> {
       suitFabric: product.suitFabric ?? undefined,
       usage: product.usage ?? undefined,
       care: product.care ?? undefined,
-      imageData: product.imageData ?? undefined,
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),
     }
@@ -172,19 +141,7 @@ export async function getBySlug(slug: string): Promise<Product | null> {
 
 // Utility function to get the best available image for a product
 export function getProductImage(product: Product, index: number = 0): string {
-  // First try to get from imageData (base64)
-  if (product.imageData) {
-    try {
-      const base64Images = JSON.parse(product.imageData)
-      if (base64Images[index]) {
-        return base64Images[index]
-      }
-    } catch (error) {
-      console.error('Error parsing imageData:', error)
-    }
-  }
-  
-  // Fallback to images array (URLs)
+  // Use Cloudinary URLs from images array
   if (product.images && product.images[index]) {
     return product.images[index]
   }
@@ -195,27 +152,11 @@ export function getProductImage(product: Product, index: number = 0): string {
 
 // Utility function to get all images for a product
 export function getProductImages(product: Product): string[] {
-  const images: string[] = []
-  
-  // First try to get from imageData (base64)
-  if (product.imageData) {
-    try {
-      const base64Images = JSON.parse(product.imageData)
-      images.push(...base64Images)
-    } catch (error) {
-      console.error('Error parsing imageData:', error)
-    }
-  }
-  
-  // Add fallback URLs if no base64 images
-  if (images.length === 0 && product.images) {
-    images.push(...product.images)
+  // Return Cloudinary URLs from images array
+  if (product.images && product.images.length > 0) {
+    return product.images
   }
   
   // Final fallback
-  if (images.length === 0) {
-    images.push('/placeholder.svg')
-  }
-  
-  return images
+  return ['/placeholder.svg']
 }

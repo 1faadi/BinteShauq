@@ -9,7 +9,7 @@ export default async function NewArrivalsPage() {
   
   try {
     // Use optimized getProducts function with caching
-    items = await getProducts(undefined, undefined, undefined, false)
+    items = await getProducts(undefined, undefined, undefined)
     // Filter for new arrivals
     items = items.filter(item => item.isNewArrival)
   } catch (error) {

@@ -73,8 +73,7 @@ model Product {
   slug        String   @unique
   description String
   price       Int
-  images      String[] // Keep for backward compatibility, will store base64 or file paths
-  imageData   String?  // Store base64 encoded images
+  images      String[] // Cloudinary URLs
   collection  String
   inStock     Boolean  @default(true)
   isFeatured  Boolean  @default(false)
