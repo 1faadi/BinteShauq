@@ -23,13 +23,13 @@ export function SiteFooter() {
             <LogoMark size={64} />
             <Wordmark />
             <div className="flex items-center gap-4 mt-2">
-              <Link href="#" className="text-sm underline-offset-2 hover:underline">
+              <Link href="https://www.facebook.com/profile.php?id=61580600636206" target="_blank" rel="noopener noreferrer" className="text-sm underline-offset-2 hover:underline">
                 Facebook
               </Link>
-              <Link href="#" className="text-sm underline-offset-2 hover:underline">
+              <Link href="https://www.instagram.com/bint_e_shauq/" target="_blank" rel="noopener noreferrer" className="text-sm underline-offset-2 hover:underline">
                 Instagram
               </Link>
-              <Link href="#" className="text-sm underline-offset-2 hover:underline">
+              <Link href="https://wa.me/923711538953" target="_blank" rel="noopener noreferrer" className="text-sm underline-offset-2 hover:underline">
                 WhatsApp
               </Link>
             </div>

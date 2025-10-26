@@ -66,8 +66,59 @@ export default async function ProductPage({ params }: ProductPageProps) {
         {/* Product Details */}
         <div className="space-y-6">
           <div>
-            <h2 className="text-2xl font-bold mb-2">Rs. {product.price.toLocaleString()}</h2>
-            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+            <h2 className="text-2xl font-bold mb-4">Rs. {product.price.toLocaleString()}</h2>
+            <div className="space-y-2 text-muted-foreground">
+              <p>Wrap yourself in timeless elegance with our Premium Embroidered Shawl, made from the finest staple karrandi fabric. Designed with custom embroidery, this beautiful piece combines traditional charm with a modern touch.</p>
+              <p>Its soft texture and smooth drape let it fall perfectly over the shoulders, making it an ideal formal shawl for special occasions.</p>
+              <p>Along with it, we offer an unstitched loose fabric in the same premium staple karrandi material, perfect for creating formal outfits that reflect grace and sophistication.</p>
+            </div>
+            <div className="mt-4 space-y-1 text-sm">
+              {product.color && (
+                <div className="flex items-start gap-2">
+                  <span className="font-semibold">✨ Color:</span>
+                  <span>{product.color}</span>
+                </div>
+              )}
+              {product.fabric && (
+                <div className="flex items-start gap-2">
+                  <span className="font-semibold">✨ Fabric:</span>
+                  <span>{product.fabric}</span>
+                </div>
+              )}
+              {product.suitFabric && (
+                <div className="flex items-start gap-2">
+                  <span className="font-semibold">✨ Suit Fabric:</span>
+                  <span>{product.suitFabric}</span>
+                </div>
+              )}
+              {product.embroidery && (
+                <div className="flex items-start gap-2">
+                  <span className="font-semibold">✨ Embroidery:</span>
+                  <span>{product.embroidery}</span>
+                </div>
+              )}
+              {product.shawlLength && (
+                <div className="flex items-start gap-2">
+                  <span className="font-semibold">✨ Shawl Length:</span>
+                  <span>{product.shawlLength}</span>
+                </div>
+              )}
+              {product.usage && (
+                <div className="flex items-start gap-2">
+                  <span className="font-semibold">✨ Usage:</span>
+                  <span>{product.usage}</span>
+                </div>
+              )}
+              {product.care && (
+                <div className="flex items-start gap-2">
+                  <span className="font-semibold">✨ Care:</span>
+                  <span>{product.care}</span>
+                </div>
+              )}
+            </div>
+            <div className="mt-2 text-xs text-orange-600">
+              Note: Dark fabrics (suit) may bleed during the first wash due to dye chemicals.
+            </div>
           </div>
 
           {/* Product Specifications */}

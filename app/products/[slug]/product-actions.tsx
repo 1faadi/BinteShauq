@@ -116,7 +116,7 @@ export function ProductActions({ product }: ProductActionsProps) {
       </Button>
       
       <p className="text-xs text-muted-foreground text-center">
-        Free shipping on orders over Rs. 5,000
+        Fastest Shipping
       </p>
     </div>
   )

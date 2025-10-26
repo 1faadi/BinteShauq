@@ -79,7 +79,7 @@ export default function CheckoutPage() {
           quantity: item.quantity,
           price: item.price,
         })),
-        total: getTotalPrice(),
+        total: getTotalPrice() + 300, // Add Rs. 300 delivery charges
         paymentMethod,
         shippingAddress: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`,
         billingAddress: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`,
@@ -303,7 +303,7 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-4 italic">
-                    After making the payment, please share the transaction receipt along with your Order ID at binteshauq@gmail.com
+                    After making the payment, please share the transaction receipt along with your Order ID at binteshauq@gmail.com and Whatsapp +92 371 1538953
                   </p>
                 </div>
               )}
@@ -350,8 +350,8 @@ export default function CheckoutPage() {
                   <span>Rs. {getTotalPrice().toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Shipping</span>
-                  <span>Free</span>
+                  <span>Delivery Charges</span>
+                  <span>Rs. 300</span>
                 </div>
                 {paymentMethod === "cod" && (
                   <div className="flex justify-between text-sm">
@@ -368,7 +368,7 @@ export default function CheckoutPage() {
                 <Separator />
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total</span>
-                  <span>Rs. {getTotalPrice().toLocaleString()}</span>
+                  <span>Rs. {(getTotalPrice() + 300).toLocaleString()}</span>
                 </div>
               </div>
               
@@ -378,7 +378,7 @@ export default function CheckoutPage() {
                 onClick={handlePlaceOrder}
                 disabled={isProcessing}
               >
-                {isProcessing ? "Processing..." : `Place Order - Rs. ${getTotalPrice().toLocaleString()}`}
+                {isProcessing ? "Processing..." : `Place Order - Rs. ${(getTotalPrice() + 300).toLocaleString()}`}
               </Button>
               
               <Button variant="outline" className="w-full" asChild>

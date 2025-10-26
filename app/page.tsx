@@ -39,10 +39,10 @@ export default async function HomePage() {
             Winter '25 Collection
           </Badge>
           <h1 className="caps text-3xl sm:text-5xl md:text-7xl thin text-center mb-4 md:mb-6">
-            ELEGANT KARANDI SHAWLS
+            Premium Women's Wear
           </h1>
           <p className="mx-auto max-w-2xl text-base md:text-lg text-muted-foreground mb-6 md:mb-8">
-            Discover our refined collection of karandi shawl suits with modern silhouettes and quiet luxury.
+            Stitching stories of grace, where every thread weaves timeless elegance for the modern woman.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
             <Button size="lg" asChild className="w-full sm:w-auto">
@@ -67,7 +67,7 @@ export default async function HomePage() {
             </div>
             <h3 className="font-semibold mb-2">Free Shipping</h3>
             <p className="text-sm text-muted-foreground">
-              Free shipping on orders over Rs. 5,000
+              Fastest Shipping
             </p>
           </div>
           <div className="text-center">
@@ -76,7 +76,7 @@ export default async function HomePage() {
             </div>
             <h3 className="font-semibold mb-2">Quality Guarantee</h3>
             <p className="text-sm text-muted-foreground">
-              100% authentic karandi shawls with quality assurance
+            Committed to exceptional quality — every fabric, stitch, and detail is carefully inspected to ensure lasting elegance and comfort in every piece."
             </p>
           </div>
           <div className="text-center sm:col-span-2 md:col-span-1">
@@ -168,7 +168,7 @@ export default async function HomePage() {
           </div>
           <div className="relative order-1 lg:order-2">
             <Image
-              src="/karandi-shawl-detail.jpg"
+              src="/karandi-shawl-detail.png"
               alt="Karandi Shawl Detail"
               width={600}
               height={400}

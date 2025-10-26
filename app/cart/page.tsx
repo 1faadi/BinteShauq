@@ -173,17 +173,13 @@ export default function CartPage() {
                 <span>Rs. {getTotalPrice().toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>Free</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Tax</span>
-                <span>Rs. 0</span>
+                <span>Delivery Charges</span>
+                <span>Rs. 300</span>
               </div>
               <Separator />
               <div className="flex justify-between font-semibold text-lg">
                 <span>Total</span>
-                <span>Rs. {getTotalPrice().toLocaleString()}</span>
+                <span>Rs. {(getTotalPrice() + 300).toLocaleString()}</span>
               </div>
               
               <Button 
