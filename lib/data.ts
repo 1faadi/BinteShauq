@@ -97,6 +97,63 @@ export async function getProducts(sort?: string, collection?: string, limit?: nu
   }
 }
 
+export async function getProductsByCategories(): Promise<Product[]> {
+  try {
+    // Create cache key
+    const cacheKey = 'products-by-categories'
+    
+    // Try cache first
+    const cached = cache.get<Product[]>(cacheKey)
+    if (cached) {
+      return cached
+    }
+
+    // Get all distinct collections
+    const collections = await prisma.product.findMany({
+      where: { inStock: true },
+      select: { collection: true },
+      distinct: ['collection'],
+    })
+
+    // Get one product from each collection
+    const products: Product[] = []
+    for (const collection of collections) {
+      const product = await prisma.product.findFirst({
+        where: {
+          collection: collection.collection,
+          inStock: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+      
+      if (product) {
+        // Convert Date objects to strings and null to undefined for serialization
+        products.push({
+          ...product,
+          articleName: product.articleName ?? undefined,
+          color: product.color ?? undefined,
+          fabric: product.fabric ?? undefined,
+          embroidery: product.embroidery ?? undefined,
+          shawlLength: product.shawlLength ?? undefined,
+          suitFabric: product.suitFabric ?? undefined,
+          usage: product.usage ?? undefined,
+          care: product.care ?? undefined,
+          createdAt: product.createdAt.toISOString(),
+          updatedAt: product.updatedAt.toISOString(),
+        })
+      }
+    }
+
+    // Cache for 2 minutes
+    cache.set(cacheKey, products, 2 * 60 * 1000)
+    
+    return products
+  } catch (error) {
+    console.error('Error fetching products by categories:', error)
+    return []
+  }
+}
+
 export async function getBySlug(slug: string): Promise<Product | null> {
   try {
     // Try cache first

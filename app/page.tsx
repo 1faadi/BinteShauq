@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Star, Truck, Shield, Headphones } from "lucide-react"
-import { getProductImage, getProducts } from "@/lib/data"
+import { getProductImage, getProductsByCategories } from "@/lib/data"
 
 // Make this page dynamic to avoid build-time database calls
 export const dynamic = 'force-dynamic'
@@ -13,8 +13,8 @@ export default async function HomePage() {
   let featuredProducts: any[] = []
   
   try {
-    // Use optimized getProducts function with caching
-    featuredProducts = await getProducts(undefined, undefined, 3, true)
+    // Get one product from each category/collection
+    featuredProducts = await getProductsByCategories()
   } catch (error) {
     console.error("Error fetching featured products:", error)
     // Fallback to empty array if database is not available
@@ -65,28 +65,28 @@ export default async function HomePage() {
             <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mb-4">
               <Truck className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="font-semibold mb-2">Free Shipping</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="font-semibold mb-2">Fastest Shipping</h3>
+            {/* <p className="text-sm text-muted-foreground">
               Fastest Shipping
-            </p>
+            </p> */}
           </div>
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mb-4">
               <Shield className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="font-semibold mb-2">Quality Guarantee</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="font-semibold mb-2">Committed to exceptional quality</h3>
+            {/* <p className="text-sm text-muted-foreground">
             Committed to exceptional quality — every fabric, stitch, and detail is carefully inspected to ensure lasting elegance and comfort in every piece."
-            </p>
+            </p> */}
           </div>
           <div className="text-center sm:col-span-2 md:col-span-1">
             <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mb-4">
               <Headphones className="h-6 w-6 text-primary" />
             </div>
             <h3 className="font-semibold mb-2">24/7 Support</h3>
-            <p className="text-sm text-muted-foreground">
+            {/* <p className="text-sm text-muted-foreground">
               Customer support available round the clock
-            </p>
+            </p> */}
           </div>
         </div>
       </section>
