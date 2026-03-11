@@ -26,7 +26,7 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json()
     const existing = await prisma.storeSettings.findFirst()
-    const data = {
+    const data: Record<string, unknown> = {
       storeName: body.storeName,
       storeDescription: body.storeDescription,
       storeEmail: body.storeEmail,
@@ -40,6 +40,14 @@ export async function PUT(request: NextRequest) {
       currency: body.currency,
       timezone: body.timezone,
     }
+    if (body.heroLine1 !== undefined) data.heroLine1 = body.heroLine1
+    if (body.heroLine2 !== undefined) data.heroLine2 = body.heroLine2
+    if (body.heroFontFamily1 !== undefined) data.heroFontFamily1 = body.heroFontFamily1
+    if (body.heroFontFamily2 !== undefined) data.heroFontFamily2 = body.heroFontFamily2
+    if (body.heroFontSize1 !== undefined) data.heroFontSize1 = body.heroFontSize1
+    if (body.heroFontSize2 !== undefined) data.heroFontSize2 = body.heroFontSize2
+    if (body.heroFontWeight1 !== undefined) data.heroFontWeight1 = body.heroFontWeight1
+    if (body.heroFontWeight2 !== undefined) data.heroFontWeight2 = body.heroFontWeight2
 
     const settings = existing
       ? await prisma.storeSettings.update({ where: { id: existing.id }, data })

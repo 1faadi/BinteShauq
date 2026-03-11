@@ -62,6 +62,9 @@ export async function PUT(
       care,
       isFeatured,
       isNewArrival,
+      sizeSSoldOut,
+      sizeMSoldOut,
+      sizeLSoldOut,
       imageData,
       uploadedImagesCount,
       sidebarSections // Array of sidebar section IDs
@@ -95,6 +98,9 @@ export async function PUT(
     if (care !== undefined) updateData.care = care
     if (isFeatured !== undefined) updateData.isFeatured = !!isFeatured
     if (isNewArrival !== undefined) updateData.isNewArrival = !!isNewArrival
+    if (typeof sizeSSoldOut === "boolean") updateData.sizeSSoldOut = sizeSSoldOut
+    if (typeof sizeMSoldOut === "boolean") updateData.sizeMSoldOut = sizeMSoldOut
+    if (typeof sizeLSoldOut === "boolean") updateData.sizeLSoldOut = sizeLSoldOut
     if (imageData !== undefined) {
       updateData.imageData = imageData
       // Try to mirror imageData array into images[] for easier querying

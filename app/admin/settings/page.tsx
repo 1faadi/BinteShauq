@@ -17,7 +17,21 @@ import {
   Database,
   Bell,
   Save,
+  Type,
 } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  HERO_FONT_FAMILIES,
+  HERO_FONT_SIZES_LINE1,
+  HERO_FONT_SIZES_LINE2,
+  HERO_FONT_WEIGHTS,
+} from "@/lib/hero-config"
 import toast from "react-hot-toast"
 
 export default function AdminSettings() {
@@ -34,6 +48,14 @@ export default function AdminSettings() {
     lowStockThreshold: 10,
     currency: "PKR",
     timezone: "Asia/Karachi",
+    heroLine1: "Premium Women's Wear",
+    heroLine2: "Karandi Shawls",
+    heroFontFamily1: "geist",
+    heroFontFamily2: "georgia",
+    heroFontSize1: "6xl",
+    heroFontSize2: "3xl",
+    heroFontWeight1: "bold",
+    heroFontWeight2: "semibold",
   })
 
   const [isSaving, setIsSaving] = useState(false)
@@ -97,6 +119,139 @@ export default function AdminSettings() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Home Page Hero Text */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Type className="h-5 w-5" />
+              Home Page Hero Text
+            </CardTitle>
+            <CardDescription>
+              Customize the main headline and subheadline on your home page
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Line 1 (Main Headline)</Label>
+                <Input
+                  value={settings.heroLine1}
+                  onChange={(e) => handleInputChange("heroLine1", e.target.value)}
+                  placeholder="e.g. Premium Women's Wear"
+                />
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Font</Label>
+                    <Select
+                      value={settings.heroFontFamily1}
+                      onValueChange={(v) => handleInputChange("heroFontFamily1", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {HERO_FONT_FAMILIES.map((f) => (
+                          <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Size</Label>
+                    <Select
+                      value={settings.heroFontSize1}
+                      onValueChange={(v) => handleInputChange("heroFontSize1", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {HERO_FONT_SIZES_LINE1.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Weight</Label>
+                    <Select
+                      value={settings.heroFontWeight1}
+                      onValueChange={(v) => handleInputChange("heroFontWeight1", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {HERO_FONT_WEIGHTS.map((w) => (
+                          <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Line 2 (Subheadline)</Label>
+                <Input
+                  value={settings.heroLine2}
+                  onChange={(e) => handleInputChange("heroLine2", e.target.value)}
+                  placeholder="e.g. Karandi Shawls"
+                />
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Font</Label>
+                    <Select
+                      value={settings.heroFontFamily2}
+                      onValueChange={(v) => handleInputChange("heroFontFamily2", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {HERO_FONT_FAMILIES.map((f) => (
+                          <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Size</Label>
+                    <Select
+                      value={settings.heroFontSize2}
+                      onValueChange={(v) => handleInputChange("heroFontSize2", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {HERO_FONT_SIZES_LINE2.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Weight</Label>
+                    <Select
+                      value={settings.heroFontWeight2}
+                      onValueChange={(v) => handleInputChange("heroFontWeight2", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {HERO_FONT_WEIGHTS.map((w) => (
+                          <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Store Information */}
         <Card>
           <CardHeader>

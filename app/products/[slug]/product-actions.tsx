@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/lib/cart-context"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { ShoppingCart, CreditCard, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -14,16 +15,45 @@ interface ProductActionsProps {
     price: number
     image: string
     inStock: boolean
+    collection?: string
+    sizeSSoldOut?: boolean
+    sizeMSoldOut?: boolean
+    sizeLSoldOut?: boolean
   }
 }
+
+const SIZES = ["S", "M", "L"] as const
 
 export function ProductActions({ product }: ProductActionsProps) {
   const { addToCart, isLoading: cartLoading } = useCart()
   const router = useRouter()
   const [isBuying, setIsBuying] = useState(false)
+  const [selectedSize, setSelectedSize] = useState<string | null>(null)
+
+  const isStitched = product.collection?.toLowerCase() === "stitched"
+  const sizeSoldOut = {
+    S: product.sizeSSoldOut ?? false,
+    M: product.sizeMSoldOut ?? false,
+    L: product.sizeLSoldOut ?? false,
+  }
+  const hasAvailableSize = isStitched
+    ? Object.values(sizeSoldOut).some((s) => !s)
+    : true
+  const canAddToCart =
+    product.inStock &&
+    hasAvailableSize &&
+    (!isStitched || (selectedSize && !sizeSoldOut[selectedSize as keyof typeof sizeSoldOut]))
 
   const handleAddToCart = async () => {
-    if (!product.inStock) {
+    if (!canAddToCart) {
+      if (isStitched && !selectedSize) {
+        toast.error("Please select a size")
+        return
+      }
+      if (isStitched && selectedSize && sizeSoldOut[selectedSize as keyof typeof sizeSoldOut]) {
+        toast.error("This size is sold out")
+        return
+      }
       toast.error("This product is out of stock")
       return
     }
@@ -32,27 +62,30 @@ export function ProductActions({ product }: ProductActionsProps) {
       id: product.id,
       name: product.name,
       price: product.price,
-      image: product.image
+      image: product.image,
+      size: isStitched ? selectedSize! : undefined,
     })
   }
 
   const handleBuyNow = async () => {
-    if (!product.inStock) {
-      toast.error("This product is out of stock")
+    if (!canAddToCart) {
+      if (isStitched && !selectedSize) {
+        toast.error("Please select a size")
+        return
+      }
+      toast.error("This product is unavailable")
       return
     }
 
     setIsBuying(true)
     try {
-      // Add to cart first
       await addToCart({
         id: product.id,
         name: product.name,
         price: product.price,
-        image: product.image
+        image: product.image,
+        size: isStitched ? selectedSize! : undefined,
       })
-      
-      // Then redirect to checkout
       router.push("/checkout")
     } catch (error) {
       toast.error("Failed to proceed to checkout")
@@ -61,7 +94,8 @@ export function ProductActions({ product }: ProductActionsProps) {
     }
   }
 
-  if (!product.inStock) {
+  const isFullyOutOfStock = !product.inStock || (isStitched && !hasAvailableSize)
+  if (isFullyOutOfStock) {
     return (
       <div className="space-y-4">
         <Button size="lg" className="w-full" disabled>
@@ -76,11 +110,42 @@ export function ProductActions({ product }: ProductActionsProps) {
 
   return (
     <div className="space-y-3">
+      {isStitched && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Size</p>
+          <div className="flex gap-2">
+            {SIZES.map((size) => {
+              const soldOut = sizeSoldOut[size]
+              return (
+                <div key={size} className="flex flex-col items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => !soldOut && setSelectedSize(size)}
+                    className={cn(
+                      "flex h-10 w-10 items-center justify-center rounded-md border text-sm font-medium transition-colors",
+                      soldOut
+                        ? "cursor-not-allowed border-dashed border-muted bg-muted/50 text-muted-foreground opacity-60"
+                        : selectedSize === size
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-input hover:border-primary hover:bg-accent"
+                    )}
+                  >
+                    {size}
+                  </button>
+                  {soldOut && (
+                    <span className="text-[10px] text-destructive">Sold Out</span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
       <Button
         size="lg"
         className="w-full"
         onClick={handleAddToCart}
-        disabled={cartLoading}
+        disabled={cartLoading || !canAddToCart}
       >
         {cartLoading ? (
           <>
@@ -100,7 +165,7 @@ export function ProductActions({ product }: ProductActionsProps) {
         variant="outline"
         className="w-full"
         onClick={handleBuyNow}
-        disabled={cartLoading || isBuying}
+        disabled={cartLoading || isBuying || !canAddToCart}
       >
         {isBuying ? (
           <>

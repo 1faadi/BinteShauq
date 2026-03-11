@@ -74,6 +74,9 @@ interface Product {
   suitFabric?: string
   usage?: string
   care?: string
+  sizeSSoldOut?: boolean
+  sizeMSoldOut?: boolean
+  sizeLSoldOut?: boolean
 }
 
 export default function AdminProducts() {
@@ -376,6 +379,9 @@ function ProductForm({
     care: product?.care || "Dry Clean Only",
     isFeatured: (product as any)?.isFeatured || false,
     isNewArrival: (product as any)?.isNewArrival || false,
+    sizeSSoldOut: (product as any)?.sizeSSoldOut ?? false,
+    sizeMSoldOut: (product as any)?.sizeMSoldOut ?? false,
+    sizeLSoldOut: (product as any)?.sizeLSoldOut ?? false,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<File[]>([])
@@ -605,6 +611,7 @@ function ProductForm({
               <SelectItem value="modern">Modern</SelectItem>
               <SelectItem value="linear">Linear</SelectItem>
               <SelectItem value="flora">Flora</SelectItem>
+              <SelectItem value="stitched">Stitched</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -751,6 +758,39 @@ function ProductForm({
         />
         <Label htmlFor="inStock">In Stock</Label>
       </div>
+
+      {formData.collection === "stitched" && (
+        <div className="space-y-3 rounded-lg border p-4">
+          <Label>Size Availability (S M L) - Sold Out</Label>
+          <p className="text-sm text-muted-foreground">Mark which sizes are sold out for stitched collection</p>
+          <div className="flex flex-wrap gap-6">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="sizeSSoldOut"
+                checked={formData.sizeSSoldOut}
+                onCheckedChange={(checked) => setFormData({ ...formData, sizeSSoldOut: checked })}
+              />
+              <Label htmlFor="sizeSSoldOut">Size S Sold Out</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="sizeMSoldOut"
+                checked={formData.sizeMSoldOut}
+                onCheckedChange={(checked) => setFormData({ ...formData, sizeMSoldOut: checked })}
+              />
+              <Label htmlFor="sizeMSoldOut">Size M Sold Out</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="sizeLSoldOut"
+                checked={formData.sizeLSoldOut}
+                onCheckedChange={(checked) => setFormData({ ...formData, sizeLSoldOut: checked })}
+              />
+              <Label htmlFor="sizeLSoldOut">Size L Sold Out</Label>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         <div className="flex items-center space-x-2">

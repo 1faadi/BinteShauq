@@ -173,7 +173,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
               name: product.name,
               price: product.price,
               image: productImages[0] || "/placeholder.svg",
-              inStock: product.inStock
+              inStock: product.inStock,
+              collection: product.collection,
+              sizeSSoldOut: (product as any).sizeSSoldOut ?? false,
+              sizeMSoldOut: (product as any).sizeMSoldOut ?? false,
+              sizeLSoldOut: (product as any).sizeLSoldOut ?? false,
             }}
           />
         </div>

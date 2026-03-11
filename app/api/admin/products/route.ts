@@ -64,6 +64,9 @@ export async function POST(request: NextRequest) {
       care,
       isFeatured,
       isNewArrival,
+      sizeSSoldOut,
+      sizeMSoldOut,
+      sizeLSoldOut,
       sidebarSections // Array of sidebar section IDs
     } = body
 
@@ -105,6 +108,9 @@ export async function POST(request: NextRequest) {
         care,
         isFeatured: !!isFeatured,
         isNewArrival: !!isNewArrival,
+        sizeSSoldOut: !!sizeSSoldOut,
+        sizeMSoldOut: !!sizeMSoldOut,
+        sizeLSoldOut: !!sizeLSoldOut,
       },
     })
 

@@ -87,7 +87,11 @@ model Product {
   suitFabric   String?
   usage        String?
   care         String?
-  createdAt    DateTime      @default(now())
+  // Size options for stitched collection (admin-editable sold out per size)
+  sizeSSoldOut Boolean      @default(false)
+  sizeMSoldOut Boolean      @default(false)
+  sizeLSoldOut Boolean      @default(false)
+  createdAt    DateTime     @default(now())
   updatedAt    DateTime      @updatedAt
   cartItems    CartItem[]
   orderItems   OrderItem[]
@@ -98,11 +102,12 @@ model CartItem {
   id        String  @id @default(cuid())
   userId    String
   productId String
+  size      String? // S, M, L for stitched collection
   quantity  Int     @default(1)
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, productId])
+  @@unique([userId, productId, size])
 }
 
 model Order {
@@ -161,6 +166,15 @@ model StoreSettings {
   lowStockThreshold        Int      @default(10)
   currency                 String   @default("PKR")
   timezone                 String   @default("Asia/Karachi")
+  // Home page hero text (editable from admin)
+  heroLine1                String?  // e.g. "Premium Women's Wear"
+  heroLine2                String?  // e.g. "Karandi Shawls"
+  heroFontFamily1          String?  // font family for line 1
+  heroFontFamily2          String?  // font family for line 2
+  heroFontSize1            String?  // size key: 4xl, 5xl, 6xl, 7xl, 8xl
+  heroFontSize2            String?  // size key: xl, 2xl, 3xl, 4xl, 5xl
+  heroFontWeight1          String?  // normal, medium, semibold, bold
+  heroFontWeight2          String?  // normal, medium, semibold, bold
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }

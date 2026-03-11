@@ -71,11 +71,11 @@ export default function CartPage() {
     )
   }
 
-  const handleQuantityChange = async (productId: string, newQuantity: number) => {
+  const handleQuantityChange = async (itemId: string, newQuantity: number) => {
     if (newQuantity < 1) {
-      await removeFromCart(productId)
+      await removeFromCart(itemId)
     } else {
-      await updateQuantity(productId, newQuantity)
+      await updateQuantity(itemId, newQuantity)
     }
   }
 
@@ -118,14 +118,17 @@ export default function CartPage() {
                   
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-sm md:text-lg">{item.name}</h3>
-                    <p className="text-muted-foreground text-xs md:text-sm">Rs. {item.price.toLocaleString()}</p>
+                    <p className="text-muted-foreground text-xs md:text-sm">
+                      Rs. {item.price.toLocaleString()}
+                      {item.size && <span className="ml-1">• Size {item.size}</span>}
+                    </p>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}
+                      onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
                       disabled={isLoading}
                     >
                       <Minus className="h-3 w-3 md:h-4 md:w-4" />
@@ -134,7 +137,7 @@ export default function CartPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleQuantityChange(item.productId, item.quantity + 1)}
+                      onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
                       disabled={isLoading}
                     >
                       <Plus className="h-3 w-3 md:h-4 md:w-4" />
@@ -148,7 +151,7 @@ export default function CartPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeFromCart(item.productId)}
+                      onClick={() => removeFromCart(item.id)}
                       disabled={isLoading}
                       className="text-red-600 hover:text-red-700 p-1"
                     >

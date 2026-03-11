@@ -24,6 +24,7 @@ export async function GET() {
       price: item.product.price,
       image: item.product.images[0] || "/placeholder.svg",
       quantity: item.quantity,
+      size: item.size || undefined,
     }))
 
     return NextResponse.json({ items })
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { productId, quantity = 1 } = await request.json()
+    const { productId, quantity = 1, size = "" } = await request.json()
 
     if (!productId) {
       return NextResponse.json({ error: "Product ID is required" }, { status: 400 })
@@ -55,18 +56,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 })
     }
 
-    // Check if item already exists in cart
-    const existingItem = await prisma.cartItem.findUnique({
+    // Use empty string for non-sized products (PostgreSQL treats NULLs as distinct in unique)
+    const sizeVal = size || ""
+
+    // Check if item already exists in cart (same product + size)
+    const existingItem = await prisma.cartItem.findFirst({
       where: {
-        userId_productId: {
-          userId: session.user.id,
-          productId,
-        },
+        userId: session.user.id,
+        productId,
+        size: sizeVal,
       },
     })
 
     if (existingItem) {
-      // Update quantity
       const updatedItem = await prisma.cartItem.update({
         where: { id: existingItem.id },
         data: { quantity: existingItem.quantity + quantity },
@@ -80,6 +82,7 @@ export async function POST(request: NextRequest) {
           userId: session.user.id,
           productId,
           quantity,
+          size: sizeVal,
         },
       })
 

@@ -35,6 +35,9 @@ export function MegaMenu() {
               <Link href="/collections/flora" className="py-1 text-sm hover:opacity-70">
                 Flora
               </Link>
+              <Link href="/collections/stitched" className="py-1 text-sm hover:opacity-70">
+                Stitched
+              </Link>
             </div>
           </div>
         </div>

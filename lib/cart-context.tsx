@@ -11,13 +11,14 @@ interface CartItem {
   price: number
   image: string
   quantity: number
+  size?: string
 }
 
 interface CartContextType {
   items: CartItem[]
-  addToCart: (product: { id: string; name: string; price: number; image: string }) => Promise<void>
-  removeFromCart: (productId: string) => Promise<void>
-  updateQuantity: (productId: string, quantity: number) => Promise<void>
+  addToCart: (product: { id: string; name: string; price: number; image: string; size?: string }) => Promise<void>
+  removeFromCart: (itemId: string) => Promise<void>
+  updateQuantity: (itemId: string, quantity: number) => Promise<void>
   clearCart: () => Promise<void>
   getTotalItems: () => number
   getTotalPrice: () => number
@@ -57,7 +58,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const addToCart = async (product: { id: string; name: string; price: number; image: string }) => {
+  const addToCart = async (product: { id: string; name: string; price: number; image: string; size?: string }) => {
     if (!session?.user) {
       toast.error("Please sign in to add items to cart")
       return
@@ -73,6 +74,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({
           productId: product.id,
           quantity: 1,
+          size: product.size ?? "",
         }),
       })
 
@@ -90,12 +92,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const removeFromCart = async (productId: string) => {
+  const removeFromCart = async (itemId: string) => {
     if (!session?.user) return
 
     try {
       setIsLoading(true)
-      const response = await fetch(`/api/cart/${productId}`, {
+      const response = await fetch(`/api/cart/items/${itemId}`, {
         method: "DELETE",
       })
 
@@ -112,12 +114,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const updateQuantity = async (productId: string, quantity: number) => {
+  const updateQuantity = async (itemId: string, quantity: number) => {
     if (!session?.user) return
 
     try {
       setIsLoading(true)
-      const response = await fetch(`/api/cart/${productId}`, {
+      const response = await fetch(`/api/cart/items/${itemId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

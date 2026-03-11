@@ -2,10 +2,16 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Star, Truck, Shield, Headphones } from "lucide-react"
 import { getProductImage, getProductsByCategories } from "@/lib/data"
 import { getSidebarSections } from "@/lib/sidebar"
+import { getHeroSettings } from "@/lib/settings"
+import {
+  getFontFamily,
+  getFontSizeClass1,
+  getFontSizeClass2,
+  getFontWeightClass,
+} from "@/lib/hero-config"
 import { MainSidebar } from "@/components/main-sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { SidebarWrapper } from "@/components/sidebar-wrapper"
@@ -16,18 +22,20 @@ export const dynamic = 'force-dynamic'
 export default async function HomePage() {
   let featuredProducts: any[] = []
   let sidebarSections: any[] = []
-  
+  let heroSettings: Awaited<ReturnType<typeof getHeroSettings>> = null
+
   try {
-    // Get one product from each category/collection
     featuredProducts = await getProductsByCategories()
-    // Get sidebar sections
     sidebarSections = await getSidebarSections()
+    heroSettings = await getHeroSettings()
   } catch (error) {
     console.error("Error fetching data:", error)
-    // Fallback to empty array if database is not available
     featuredProducts = []
     sidebarSections = []
   }
+
+  const heroLine1 = heroSettings?.heroLine1 ?? "Premium Women's Wear"
+  const heroLine2 = heroSettings?.heroLine2 ?? "Karandi Shawls"
 
   return (
     <SidebarProvider defaultOpen={false}>
@@ -42,11 +50,17 @@ export default async function HomePage() {
                 <div className="relative z-10 flex items-center px-6 md:px-12 lg:px-16 xl:px-20 py-12 md:py-16 order-2 lg:order-1">
                   <div className="space-y-6 md:space-y-8 w-full">
                     <div className="space-y-3 md:space-y-4">
-                      <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight leading-tight">
-                        Premium Women's Wear
+                      <h1
+                        className={`tracking-tight leading-tight ${getFontSizeClass1(heroSettings?.heroFontSize1)} ${getFontWeightClass(heroSettings?.heroFontWeight1)}`}
+                        style={{ fontFamily: getFontFamily(heroSettings?.heroFontFamily1) }}
+                      >
+                        {heroLine1}
                       </h1>
-                      <h2 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-semibold text-muted-foreground">
-                        Karandi Shawls
+                      <h2
+                        className={`text-muted-foreground ${getFontSizeClass2(heroSettings?.heroFontSize2)} ${getFontWeightClass(heroSettings?.heroFontWeight2)}`}
+                        style={{ fontFamily: getFontFamily(heroSettings?.heroFontFamily2) }}
+                      >
+                        {heroLine2}
                       </h2>
                     </div>
                     <div className="pt-4 md:pt-6">
