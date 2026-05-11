@@ -91,6 +91,7 @@ model Product {
   sizeSSoldOut Boolean      @default(false)
   sizeMSoldOut Boolean      @default(false)
   sizeLSoldOut Boolean      @default(false)
+  requiresSizes Boolean      @default(true) // Show S/M/L on PDP unless disabled (e.g. accessory-only SKUs)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime      @updatedAt
   cartItems    CartItem[]
@@ -175,6 +176,17 @@ model StoreSettings {
   heroFontSize2            String?  // size key: xl, 2xl, 3xl, 4xl, 5xl
   heroFontWeight1          String?  // normal, medium, semibold, bold
   heroFontWeight2          String?  // normal, medium, semibold, bold
+  heroImageUrl             String?  // Full URL or site path e.g. /karandi-shawl-back.jpg
+  heroButtonText           String?  // CTA label on hero
+  heroButtonHref           String?  // CTA link e.g. /shop
+  // Home page “About our collection” block
+  homeAboutTitle           String?
+  homeAboutParagraph1      String?
+  homeAboutParagraph2      String?
+  homeAboutButtonText      String?
+  homeAboutButtonHref      String?
+  homeAboutImageUrl        String?
+  homeAboutImageAlt        String?
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 }

@@ -52,13 +52,17 @@ export function SidebarHeaderTrigger() {
 
   return (
     <Button
-      variant="ghost"
-      size="icon"
-      className="size-7"
+      type="button"
+      variant="outline"
+      size="sm"
+      className="h-9 shrink-0 gap-2 border-primary/40 bg-background px-3 shadow-sm hover:bg-muted hover:border-primary/60"
       onClick={handleClick}
-      aria-label="Toggle Sidebar"
+      aria-label="Open browse menu — shop categories and collections"
     >
-      <PanelLeftIcon className="h-4 w-4" />
+      <PanelLeftIcon className="h-4 w-4 text-primary" aria-hidden />
+      <span className="caps text-[11px] font-semibold tracking-wide text-foreground max-[380px]:hidden">
+        Browse more
+      </span>
     </Button>
   )
 }

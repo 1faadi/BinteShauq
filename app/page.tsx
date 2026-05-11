@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, Star, Truck, Shield, Headphones } from "lucide-react"
 import { getProductImage, getProductsByCategories } from "@/lib/data"
 import { getSidebarSections } from "@/lib/sidebar"
-import { getHeroSettings } from "@/lib/settings"
+import { getHeroSettings, getHomeAboutSectionSettings } from "@/lib/settings"
 import {
   getFontFamily,
   getFontSizeClass1,
@@ -19,15 +19,38 @@ import { SidebarWrapper } from "@/components/sidebar-wrapper"
 // Make this page dynamic to avoid build-time database calls
 export const dynamic = 'force-dynamic'
 
+const DEFAULT_HOME_ABOUT_TITLE = "About Our Collection"
+const DEFAULT_HOME_ABOUT_P1 =
+  "Our karandi shawls are crafted with the finest materials and traditional techniques, bringing together timeless elegance and modern comfort. Each piece is carefully selected to ensure the highest quality and authentic craftsmanship."
+const DEFAULT_HOME_ABOUT_P2 =
+  "From the delicate beige tones to the rich midnight colors, our collection offers something for every occasion and personal style preference."
+const DEFAULT_HOME_ABOUT_BUTTON = "Explore Collection"
+const DEFAULT_HOME_ABOUT_HREF = "/collections/blossom"
+const DEFAULT_HOME_ABOUT_IMAGE = "/karandi-shawl-detail.png"
+const DEFAULT_HOME_ABOUT_ALT = "Karandi Shawl Detail"
+
+function resolvedAboutText(
+  raw: string | null | undefined,
+  fallback: string,
+): string {
+  if (typeof raw !== "string") return fallback
+  const t = raw.trim()
+  return t === "" ? fallback : t
+}
+
 export default async function HomePage() {
   let featuredProducts: any[] = []
   let sidebarSections: any[] = []
   let heroSettings: Awaited<ReturnType<typeof getHeroSettings>> = null
+  let homeAboutSettings: Awaited<ReturnType<typeof getHomeAboutSectionSettings>> = null
 
   try {
     featuredProducts = await getProductsByCategories()
     sidebarSections = await getSidebarSections()
-    heroSettings = await getHeroSettings()
+    ;[heroSettings, homeAboutSettings] = await Promise.all([
+      getHeroSettings(),
+      getHomeAboutSectionSettings(),
+    ])
   } catch (error) {
     console.error("Error fetching data:", error)
     featuredProducts = []
@@ -36,52 +59,76 @@ export default async function HomePage() {
 
   const heroLine1 = heroSettings?.heroLine1 ?? "Premium Women's Wear"
   const heroLine2 = heroSettings?.heroLine2 ?? "Karandi Shawls"
+  const trimmedHeroImageUrl =
+    typeof heroSettings?.heroImageUrl === "string" ? heroSettings.heroImageUrl.trim() : ""
+  const heroImageSrc =
+    trimmedHeroImageUrl !== "" ? trimmedHeroImageUrl : "/karandi-shawl-back.jpg"
+  const heroButtonText = heroSettings?.heroButtonText?.trim() || "Shop Now"
+  const heroButtonHref = heroSettings?.heroButtonHref?.trim() || "/shop"
+
+  const homeAboutTitle = resolvedAboutText(homeAboutSettings?.homeAboutTitle, DEFAULT_HOME_ABOUT_TITLE)
+  const homeAboutP1 = resolvedAboutText(homeAboutSettings?.homeAboutParagraph1, DEFAULT_HOME_ABOUT_P1)
+  const homeAboutP2 = resolvedAboutText(homeAboutSettings?.homeAboutParagraph2, DEFAULT_HOME_ABOUT_P2)
+  const homeAboutBtn =
+    typeof homeAboutSettings?.homeAboutButtonText === "string" &&
+    homeAboutSettings.homeAboutButtonText.trim() !== ""
+      ? homeAboutSettings.homeAboutButtonText.trim()
+      : DEFAULT_HOME_ABOUT_BUTTON
+  const homeAboutHref =
+    typeof homeAboutSettings?.homeAboutButtonHref === "string" &&
+    homeAboutSettings.homeAboutButtonHref.trim() !== ""
+      ? homeAboutSettings.homeAboutButtonHref.trim()
+      : DEFAULT_HOME_ABOUT_HREF
+  const trimmedAboutImg =
+    typeof homeAboutSettings?.homeAboutImageUrl === "string"
+      ? homeAboutSettings.homeAboutImageUrl.trim()
+      : ""
+  const homeAboutImgSrc = trimmedAboutImg !== "" ? trimmedAboutImg : DEFAULT_HOME_ABOUT_IMAGE
+  const homeAboutImgAlt = resolvedAboutText(homeAboutSettings?.homeAboutImageAlt, DEFAULT_HOME_ABOUT_ALT)
 
   return (
     <SidebarProvider defaultOpen={false}>
       <SidebarWrapper>
         <MainSidebar sections={sidebarSections} />
         <SidebarInset>
-          {/* Hero Section - Full Width Edge to Edge */}
-          <section className="relative w-full min-h-[70vh] md:min-h-[85vh] flex items-center bg-gradient-to-br from-gray-50 via-gray-100 to-white overflow-hidden">
-            <div className="w-full">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 items-stretch min-h-[70vh] md:min-h-[85vh]">
-                {/* Left Side - Text Content */}
-                <div className="relative z-10 flex items-center px-6 md:px-12 lg:px-16 xl:px-20 py-12 md:py-16 order-2 lg:order-1">
-                  <div className="space-y-6 md:space-y-8 w-full">
-                    <div className="space-y-3 md:space-y-4">
-                      <h1
-                        className={`tracking-tight leading-tight ${getFontSizeClass1(heroSettings?.heroFontSize1)} ${getFontWeightClass(heroSettings?.heroFontWeight1)}`}
-                        style={{ fontFamily: getFontFamily(heroSettings?.heroFontFamily1) }}
-                      >
-                        {heroLine1}
-                      </h1>
-                      <h2
-                        className={`text-muted-foreground ${getFontSizeClass2(heroSettings?.heroFontSize2)} ${getFontWeightClass(heroSettings?.heroFontWeight2)}`}
-                        style={{ fontFamily: getFontFamily(heroSettings?.heroFontFamily2) }}
-                      >
-                        {heroLine2}
-                      </h2>
-                    </div>
-                    <div className="pt-4 md:pt-6">
-                      <Button size="lg" asChild className="uppercase tracking-wider text-sm md:text-base px-6 md:px-8 py-5 md:py-6">
-                        <Link href="/shop">
-                          Shop Now
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
+          {/* Hero — full-width background image with left-aligned overlay */}
+          <section className="relative w-full min-h-[70vh] md:min-h-[85vh] overflow-hidden">
+            <Image
+              src={heroImageSrc}
+              alt={`${heroLine1} — storefront hero`}
+              fill
+              className="object-cover object-center"
+              priority
+              sizes="100vw"
+            />
+            <div
+              className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/10"
+              aria-hidden
+            />
+            <div className="relative z-10 flex min-h-[70vh] md:min-h-[85vh] items-center px-6 md:px-12 lg:px-16 xl:px-20 py-16 md:py-20">
+              <div className="max-w-xl space-y-6 md:space-y-8">
+                <div className="space-y-3 md:space-y-4">
+                  <h1
+                    className={`text-white tracking-tight leading-tight drop-shadow-sm ${getFontSizeClass1(heroSettings?.heroFontSize1)} ${getFontWeightClass(heroSettings?.heroFontWeight1)}`}
+                    style={{ fontFamily: getFontFamily(heroSettings?.heroFontFamily1) }}
+                  >
+                    {heroLine1}
+                  </h1>
+                  <h2
+                    className={`text-white/90 drop-shadow-sm ${getFontSizeClass2(heroSettings?.heroFontSize2)} ${getFontWeightClass(heroSettings?.heroFontWeight2)}`}
+                    style={{ fontFamily: getFontFamily(heroSettings?.heroFontFamily2) }}
+                  >
+                    {heroLine2}
+                  </h2>
                 </div>
-                
-                {/* Right Side - Image */}
-                <div className="relative w-full h-[400px] md:h-[500px] lg:h-full order-1 lg:order-2">
-                  <Image
-                    src="/karandi-shawl-back.jpg"
-                    alt="Karandi Shawl Collection"
-                    fill
-                    className="object-cover"
-                    priority
-                  />
+                <div className="pt-2 md:pt-4">
+                  <Button
+                    size="lg"
+                    asChild
+                    className="uppercase tracking-wider text-sm md:text-base px-6 md:px-8 py-5 md:py-6 bg-black text-white hover:bg-black/90"
+                  >
+                    <Link href={heroButtonHref}>{heroButtonText}</Link>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -179,30 +226,23 @@ export default async function HomePage() {
       <section className="py-8 md:py-16 border-t">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
           <div className="order-2 lg:order-1">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">About Our Collection</h2>
-            <p className="text-muted-foreground mb-4">
-              Our karandi shawls are crafted with the finest materials and traditional techniques, 
-              bringing together timeless elegance and modern comfort. Each piece is carefully 
-              selected to ensure the highest quality and authentic craftsmanship.
-            </p>
-            <p className="text-muted-foreground mb-6">
-              From the delicate beige tones to the rich midnight colors, our collection offers 
-              something for every occasion and personal style preference.
-            </p>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6">{homeAboutTitle}</h2>
+            <p className="text-muted-foreground mb-4">{homeAboutP1}</p>
+            <p className="text-muted-foreground mb-6">{homeAboutP2}</p>
             <Button asChild>
-              <Link href="/collections/blossom">
-                Explore Collection
+              <Link href={homeAboutHref}>
+                {homeAboutBtn}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
-          <div className="relative order-1 lg:order-2">
+          <div className="relative order-1 lg:order-2 aspect-[3/2] w-full overflow-hidden rounded-lg border bg-muted">
             <Image
-              src="/karandi-shawl-detail.png"
-              alt="Karandi Shawl Detail"
-              width={600}
-              height={400}
-              className="rounded-lg object-cover w-full"
+              src={homeAboutImgSrc}
+              alt={homeAboutImgAlt}
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 50vw"
             />
           </div>
         </div>

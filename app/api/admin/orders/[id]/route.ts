@@ -1,3 +1,4 @@
+import { OrderStatus, type Prisma } from "@prisma/client"
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
@@ -73,12 +74,27 @@ export async function PATCH(
     }
 
     const { id } = await params
-    const body = await request.json()
-    const { status, paymentStatus } = body
+    const body: unknown = await request.json()
+    const status =
+      typeof body === "object" && body !== null && "status" in body
+        ? (body as { status: unknown }).status
+        : undefined
+    const paymentStatus =
+      typeof body === "object" && body !== null && "paymentStatus" in body
+        ? (body as { paymentStatus: unknown }).paymentStatus
+        : undefined
 
-    const updateData: any = {}
-    if (status) updateData.status = status
-    if (paymentStatus) updateData.paymentStatus = paymentStatus
+    function isOrderStatus(value: unknown): value is OrderStatus {
+      return typeof value === "string" && (Object.values(OrderStatus) as string[]).includes(value)
+    }
+
+    const updateData: Prisma.OrderUpdateInput = {}
+    if (isOrderStatus(status)) {
+      updateData.status = status
+    }
+    if (typeof paymentStatus === "string" && paymentStatus.trim() !== "") {
+      updateData.paymentStatus = paymentStatus.trim()
+    }
 
     const order = await prisma.order.update({
       where: { id },

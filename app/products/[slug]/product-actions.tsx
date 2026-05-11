@@ -15,7 +15,8 @@ interface ProductActionsProps {
     price: number
     image: string
     inStock: boolean
-    collection?: string
+    /** When false, PDP skips S/M/L (cart uses empty size). Default true if omitted. */
+    requiresSizes?: boolean
     sizeSSoldOut?: boolean
     sizeMSoldOut?: boolean
     sizeLSoldOut?: boolean
@@ -30,27 +31,31 @@ export function ProductActions({ product }: ProductActionsProps) {
   const [isBuying, setIsBuying] = useState(false)
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
 
-  const isStitched = product.collection?.toLowerCase() === "stitched"
+  const needsSizes = product.requiresSizes !== false
   const sizeSoldOut = {
     S: product.sizeSSoldOut ?? false,
     M: product.sizeMSoldOut ?? false,
     L: product.sizeLSoldOut ?? false,
   }
-  const hasAvailableSize = isStitched
+  const hasAvailableSize = needsSizes
     ? Object.values(sizeSoldOut).some((s) => !s)
     : true
   const canAddToCart =
     product.inStock &&
     hasAvailableSize &&
-    (!isStitched || (selectedSize && !sizeSoldOut[selectedSize as keyof typeof sizeSoldOut]))
+    (!needsSizes || (selectedSize !== null && !sizeSoldOut[selectedSize as keyof typeof sizeSoldOut]))
 
   const handleAddToCart = async () => {
     if (!canAddToCart) {
-      if (isStitched && !selectedSize) {
+      if (needsSizes && selectedSize === null) {
         toast.error("Please select a size")
         return
       }
-      if (isStitched && selectedSize && sizeSoldOut[selectedSize as keyof typeof sizeSoldOut]) {
+      if (
+        needsSizes &&
+        selectedSize !== null &&
+        sizeSoldOut[selectedSize as keyof typeof sizeSoldOut]
+      ) {
         toast.error("This size is sold out")
         return
       }
@@ -63,13 +68,13 @@ export function ProductActions({ product }: ProductActionsProps) {
       name: product.name,
       price: product.price,
       image: product.image,
-      size: isStitched ? selectedSize! : undefined,
+      size: needsSizes ? selectedSize ?? undefined : undefined,
     })
   }
 
   const handleBuyNow = async () => {
     if (!canAddToCart) {
-      if (isStitched && !selectedSize) {
+      if (needsSizes && selectedSize === null) {
         toast.error("Please select a size")
         return
       }
@@ -84,17 +89,17 @@ export function ProductActions({ product }: ProductActionsProps) {
         name: product.name,
         price: product.price,
         image: product.image,
-        size: isStitched ? selectedSize! : undefined,
+        size: needsSizes ? selectedSize ?? undefined : undefined,
       })
       router.push("/checkout")
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to proceed to checkout")
     } finally {
       setIsBuying(false)
     }
   }
 
-  const isFullyOutOfStock = !product.inStock || (isStitched && !hasAvailableSize)
+  const isFullyOutOfStock = !product.inStock || (needsSizes && !hasAvailableSize)
   if (isFullyOutOfStock) {
     return (
       <div className="space-y-4">
@@ -110,7 +115,7 @@ export function ProductActions({ product }: ProductActionsProps) {
 
   return (
     <div className="space-y-3">
-      {isStitched && (
+      {needsSizes && (
         <div className="space-y-2">
           <p className="text-sm font-medium">Size</p>
           <div className="flex gap-2">

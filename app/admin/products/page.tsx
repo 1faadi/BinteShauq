@@ -74,9 +74,12 @@ interface Product {
   suitFabric?: string
   usage?: string
   care?: string
-  sizeSSoldOut?: boolean
-  sizeMSoldOut?: boolean
-  sizeLSoldOut?: boolean
+      sizeSSoldOut?: boolean
+      sizeMSoldOut?: boolean
+      sizeLSoldOut?: boolean
+      requiresSizes?: boolean
+      isFeatured?: boolean
+      isNewArrival?: boolean
 }
 
 export default function AdminProducts() {
@@ -377,11 +380,12 @@ function ProductForm({
     suitFabric: product?.suitFabric || "unstitched 5-meter loose fabric",
     usage: product?.usage || "Shoulder Shawl",
     care: product?.care || "Dry Clean Only",
-    isFeatured: (product as any)?.isFeatured || false,
-    isNewArrival: (product as any)?.isNewArrival || false,
-    sizeSSoldOut: (product as any)?.sizeSSoldOut ?? false,
-    sizeMSoldOut: (product as any)?.sizeMSoldOut ?? false,
-    sizeLSoldOut: (product as any)?.sizeLSoldOut ?? false,
+    isFeatured: product?.isFeatured ?? false,
+    isNewArrival: product?.isNewArrival ?? false,
+    requiresSizes: product?.requiresSizes !== false,
+    sizeSSoldOut: product?.sizeSSoldOut ?? false,
+    sizeMSoldOut: product?.sizeMSoldOut ?? false,
+    sizeLSoldOut: product?.sizeLSoldOut ?? false,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<File[]>([])
@@ -759,10 +763,26 @@ function ProductForm({
         <Label htmlFor="inStock">In Stock</Label>
       </div>
 
-      {formData.collection === "stitched" && (
+      <div className="flex items-center space-x-2 rounded-lg border p-4">
+        <Switch
+          id="requiresSizes"
+          checked={formData.requiresSizes}
+          onCheckedChange={(checked) => setFormData({ ...formData, requiresSizes: checked })}
+        />
+        <div className="space-y-1">
+          <Label htmlFor="requiresSizes">Require size (S, M, L) on product page</Label>
+          <p className="text-sm text-muted-foreground">
+            Turn off for items that do not use clothing sizes (customers add to cart without picking S/M/L).
+          </p>
+        </div>
+      </div>
+
+      {formData.requiresSizes && (
         <div className="space-y-3 rounded-lg border p-4">
-          <Label>Size Availability (S M L) - Sold Out</Label>
-          <p className="text-sm text-muted-foreground">Mark which sizes are sold out for stitched collection</p>
+          <Label>Size availability — mark sold out</Label>
+          <p className="text-sm text-muted-foreground">
+            When all three are sold out, the product shows as unavailable on the storefront.
+          </p>
           <div className="flex flex-wrap gap-6">
             <div className="flex items-center space-x-2">
               <Switch

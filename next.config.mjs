@@ -10,7 +10,7 @@ const nextConfig = {
     unoptimized: true,
   },
   // Move serverComponentsExternalPackages to the correct location
-  serverExternalPackages: ['@prisma/client'],
+  serverExternalPackages: ['@prisma/client', 'pdfkit'],
   // Remove api config as it's not valid in Next.js 15
 }
 

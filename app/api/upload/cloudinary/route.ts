@@ -1,6 +1,13 @@
+import { createHash } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+
+function resolveUploadFolder(raw: FormDataEntryValue | null): string {
+  if (raw === "binteshauq/hero") return "binteshauq/hero"
+  if (raw === "binteshauq/home-about") return "binteshauq/home-about"
+  return "binteshauq/products"
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,18 +24,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
+    const folder = resolveUploadFolder(formData.get("folder"))
+    const timestamp = Math.round(Date.now() / 1000)
+
     // Upload to Cloudinary using signed upload
     const cloudinaryFormData = new FormData()
     cloudinaryFormData.append('file', file)
     cloudinaryFormData.append('api_key', process.env.CLOUDINARY_API_KEY || '')
-    cloudinaryFormData.append('folder', 'binteshauq/products')
-    cloudinaryFormData.append('timestamp', Math.round(new Date().getTime() / 1000).toString())
+    cloudinaryFormData.append('folder', folder)
+    cloudinaryFormData.append('timestamp', String(timestamp))
 
     // Generate signature for signed upload
-    const timestamp = Math.round(new Date().getTime() / 1000)
-    const signature = require('crypto')
-      .createHash('sha1')
-      .update(`folder=binteshauq/products&timestamp=${timestamp}${process.env.CLOUDINARY_API_SECRET || ''}`)
+    const signature = createHash('sha1')
+      .update(`folder=${folder}&timestamp=${timestamp}${process.env.CLOUDINARY_API_SECRET || ''}`)
       .digest('hex')
     
     cloudinaryFormData.append('signature', signature)

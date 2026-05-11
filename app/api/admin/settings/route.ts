@@ -48,6 +48,16 @@ export async function PUT(request: NextRequest) {
     if (body.heroFontSize2 !== undefined) data.heroFontSize2 = body.heroFontSize2
     if (body.heroFontWeight1 !== undefined) data.heroFontWeight1 = body.heroFontWeight1
     if (body.heroFontWeight2 !== undefined) data.heroFontWeight2 = body.heroFontWeight2
+    if (body.heroImageUrl !== undefined) data.heroImageUrl = body.heroImageUrl
+    if (body.heroButtonText !== undefined) data.heroButtonText = body.heroButtonText
+    if (body.heroButtonHref !== undefined) data.heroButtonHref = body.heroButtonHref
+    if (body.homeAboutTitle !== undefined) data.homeAboutTitle = body.homeAboutTitle
+    if (body.homeAboutParagraph1 !== undefined) data.homeAboutParagraph1 = body.homeAboutParagraph1
+    if (body.homeAboutParagraph2 !== undefined) data.homeAboutParagraph2 = body.homeAboutParagraph2
+    if (body.homeAboutButtonText !== undefined) data.homeAboutButtonText = body.homeAboutButtonText
+    if (body.homeAboutButtonHref !== undefined) data.homeAboutButtonHref = body.homeAboutButtonHref
+    if (body.homeAboutImageUrl !== undefined) data.homeAboutImageUrl = body.homeAboutImageUrl
+    if (body.homeAboutImageAlt !== undefined) data.homeAboutImageAlt = body.homeAboutImageAlt
 
     const settings = existing
       ? await prisma.storeSettings.update({ where: { id: existing.id }, data })

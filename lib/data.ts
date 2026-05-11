@@ -21,6 +21,10 @@ export type Product = {
   suitFabric?: string
   usage?: string
   care?: string
+  requiresSizes?: boolean
+  sizeSSoldOut?: boolean
+  sizeMSoldOut?: boolean
+  sizeLSoldOut?: boolean
   createdAt: string
   updatedAt: string
 }

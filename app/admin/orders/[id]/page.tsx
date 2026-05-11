@@ -20,9 +20,8 @@ import {
   MapPin,
   Phone,
   Mail,
-  Calendar,
-  CreditCard,
   FileText,
+  Printer,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -106,6 +105,31 @@ export default function AdminOrderDetailPage() {
       toast.error("Failed to fetch order details")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDownloadPackingSlip = async (): Promise<void> => {
+    if (!order) return
+    try {
+      const response = await fetch(`/api/admin/orders/${order.id}/packing-slip`)
+      if (!response.ok) {
+        toast.error("Could not generate packing slip")
+        return
+      }
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      const shortId = order.id.slice(-8).toUpperCase()
+      a.href = url
+      a.download = `binteshauq-packing-slip-${shortId}.pdf`
+      a.rel = "noopener"
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+      toast.success("Packing slip downloaded")
+    } catch {
+      toast.error("Could not download packing slip")
     }
   }
 
@@ -212,12 +236,18 @@ export default function AdminOrderDetailPage() {
             </p>
           </div>
         </div>
-        <Button variant="outline" asChild>
-          <Link href={`/orders/${order.id}`}>
-            <Package className="h-4 w-4 mr-2" />
-            Customer View
-          </Link>
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" variant="default" onClick={() => void handleDownloadPackingSlip()}>
+            <Printer className="h-4 w-4 mr-2" />
+            Download packing slip (PDF)
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href={`/orders/${order.id}`}>
+              <Package className="h-4 w-4 mr-2" />
+              Customer View
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

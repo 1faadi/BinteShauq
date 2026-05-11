@@ -62,6 +62,7 @@ export async function PUT(
       care,
       isFeatured,
       isNewArrival,
+      requiresSizes,
       sizeSSoldOut,
       sizeMSoldOut,
       sizeLSoldOut,
@@ -98,6 +99,7 @@ export async function PUT(
     if (care !== undefined) updateData.care = care
     if (isFeatured !== undefined) updateData.isFeatured = !!isFeatured
     if (isNewArrival !== undefined) updateData.isNewArrival = !!isNewArrival
+    if (typeof requiresSizes === "boolean") updateData.requiresSizes = requiresSizes
     if (typeof sizeSSoldOut === "boolean") updateData.sizeSSoldOut = sizeSSoldOut
     if (typeof sizeMSoldOut === "boolean") updateData.sizeMSoldOut = sizeMSoldOut
     if (typeof sizeLSoldOut === "boolean") updateData.sizeLSoldOut = sizeLSoldOut
