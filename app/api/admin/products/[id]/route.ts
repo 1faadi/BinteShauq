@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { allocateUniqueProductSlug } from "@/lib/allocate-unique-product-slug"
+import { invalidateCachesAfterProductMutation } from "@/lib/invalidate-product-cache"
 
 export async function GET(
   request: NextRequest,
@@ -44,6 +46,13 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { id } = await params
+
+    const existing = await prisma.product.findUnique({ where: { id } })
+    if (!existing) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 })
+    }
+
     const body = await request.json()
     const { 
       name, 
@@ -60,6 +69,7 @@ export async function PUT(
       suitFabric,
       usage,
       care,
+      washNote,
       isFeatured,
       isNewArrival,
       requiresSizes,
@@ -71,18 +81,14 @@ export async function PUT(
       sidebarSections // Array of sidebar section IDs
     } = body
 
-    // Generate slug from name if name is being updated
-    let slug
+    let slug: string | undefined
     if (name) {
-      slug = name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "")
+      slug = await allocateUniqueProductSlug(prisma, name, id)
     }
 
     const updateData: any = {}
     if (name) updateData.name = name
-    if (slug) updateData.slug = slug
+    if (slug !== undefined) updateData.slug = slug
     if (description) updateData.description = description
     if (price) updateData.price = parseInt(price)
     if (collection) updateData.collection = collection
@@ -97,6 +103,13 @@ export async function PUT(
     if (suitFabric !== undefined) updateData.suitFabric = suitFabric
     if (usage !== undefined) updateData.usage = usage
     if (care !== undefined) updateData.care = care
+    if (washNote !== undefined) {
+      updateData.washNote =
+        washNote === null ||
+        (typeof washNote === "string" && washNote.trim() === "")
+          ? null
+          : String(washNote).trim()
+    }
     if (isFeatured !== undefined) updateData.isFeatured = !!isFeatured
     if (isNewArrival !== undefined) updateData.isNewArrival = !!isNewArrival
     if (typeof requiresSizes === "boolean") updateData.requiresSizes = requiresSizes
@@ -116,9 +129,6 @@ export async function PUT(
       }
     }
 
-    const { id } = await params
-    
-    // Update product
     const product = await prisma.product.update({
       where: { id },
       data: updateData,
@@ -169,6 +179,8 @@ export async function PUT(
       }
     }
 
+    invalidateCachesAfterProductMutation()
+
     return NextResponse.json(product)
   } catch (error) {
     console.error("Update product error:", error)
@@ -199,6 +211,8 @@ export async function PATCH(
       data: { inStock },
     })
 
+    invalidateCachesAfterProductMutation()
+
     return NextResponse.json(product)
   } catch (error) {
     console.error("Update product stock error:", error)
@@ -221,9 +235,19 @@ export async function DELETE(
     }
 
     const { id } = await params
+    const existing = await prisma.product.findUnique({
+      where: { id },
+      select: { id: true },
+    })
+    if (!existing) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 })
+    }
+
     await prisma.product.delete({
       where: { id },
     })
+
+    invalidateCachesAfterProductMutation()
 
     return NextResponse.json({ success: true })
   } catch (error) {

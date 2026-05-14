@@ -30,6 +30,7 @@ export async function GET(
         suitFabric: true,
         usage: true,
         care: true,
+        washNote: true,
         createdAt: true,
         updatedAt: true,
       },

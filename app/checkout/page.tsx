@@ -22,7 +22,8 @@ export default function CheckoutPage() {
   const router = useRouter()
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState("cod")
-  
+  const [deliveryChargePkr, setDeliveryChargePkr] = useState(300)
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -41,12 +42,30 @@ export default function CheckoutPage() {
       router.push("/auth/signin")
       return
     }
-    
+
     if (items.length === 0) {
       router.push("/cart")
       return
     }
   }, [session, items, router])
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/store/delivery-charge")
+        if (!res.ok) return
+        const data: unknown = await res.json()
+        if (data !== null && typeof data === "object" && "deliveryChargePkr" in data) {
+          const n = (data as { deliveryChargePkr: unknown }).deliveryChargePkr
+          if (typeof n === "number" && Number.isFinite(n) && n >= 0) {
+            setDeliveryChargePkr(Math.floor(n))
+          }
+        }
+      } catch {
+        // keep default
+      }
+    })()
+  }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
@@ -79,7 +98,6 @@ export default function CheckoutPage() {
           quantity: item.quantity,
           price: item.price,
         })),
-        total: getTotalPrice() + 300, // Add Rs. 300 delivery charges
         paymentMethod,
         shippingAddress: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`,
         billingAddress: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`,
@@ -351,7 +369,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between">
                   <span>Delivery Charges</span>
-                  <span>Rs. 300</span>
+                  <span>Rs. {deliveryChargePkr.toLocaleString()}</span>
                 </div>
                 {paymentMethod === "cod" && (
                   <div className="flex justify-between text-sm">
@@ -368,7 +386,7 @@ export default function CheckoutPage() {
                 <Separator />
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total</span>
-                  <span>Rs. {(getTotalPrice() + 300).toLocaleString()}</span>
+                  <span>Rs. {(getTotalPrice() + deliveryChargePkr).toLocaleString()}</span>
                 </div>
               </div>
               
@@ -378,7 +396,7 @@ export default function CheckoutPage() {
                 onClick={handlePlaceOrder}
                 disabled={isProcessing}
               >
-                {isProcessing ? "Processing..." : `Place Order - Rs. ${(getTotalPrice() + 300).toLocaleString()}`}
+                {isProcessing ? "Processing..." : `Place Order - Rs. ${(getTotalPrice() + deliveryChargePkr).toLocaleString()}`}
               </Button>
               
               <Button variant="outline" className="w-full" asChild>

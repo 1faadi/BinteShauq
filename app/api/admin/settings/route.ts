@@ -37,6 +37,11 @@ export async function PUT(request: NextRequest) {
       requireEmailVerification: !!body.requireEmailVerification,
       enableNotifications: !!body.enableNotifications,
       lowStockThreshold: Number(body.lowStockThreshold ?? 10),
+      deliveryChargePkr: (() => {
+        const raw = Number(body.deliveryChargePkr)
+        if (!Number.isFinite(raw)) return 300
+        return Math.max(0, Math.floor(raw))
+      })(),
       currency: body.currency,
       timezone: body.timezone,
     }

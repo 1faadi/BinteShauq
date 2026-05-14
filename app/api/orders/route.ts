@@ -2,6 +2,29 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getDeliveryChargePkr } from "@/lib/settings"
+
+type OrderItemInput = {
+  productId: string
+  quantity: number
+  price: number
+}
+
+function isOrderItemInput(x: unknown): x is OrderItemInput {
+  if (x === null || typeof x !== "object") return false
+  const o = x as Record<string, unknown>
+  return (
+    typeof o.productId === "string" &&
+    o.productId.length > 0 &&
+    typeof o.quantity === "number" &&
+    Number.isFinite(o.quantity) &&
+    o.quantity >= 1 &&
+    Number.isInteger(o.quantity) &&
+    typeof o.price === "number" &&
+    Number.isFinite(o.price) &&
+    o.price >= 0
+  )
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +35,6 @@ export async function POST(request: NextRequest) {
 
     const {
       items,
-      total,
       paymentMethod,
       shippingAddress,
       billingAddress,
@@ -23,6 +45,17 @@ export async function POST(request: NextRequest) {
     if (!items || items.length === 0) {
       return NextResponse.json({ error: "No items in order" }, { status: 400 })
     }
+
+    if (!Array.isArray(items) || !items.every(isOrderItemInput)) {
+      return NextResponse.json({ error: "Invalid order items" }, { status: 400 })
+    }
+
+    const deliveryChargePkr = await getDeliveryChargePkr()
+    let subtotal = 0
+    for (const item of items) {
+      subtotal += item.price * item.quantity
+    }
+    const total = subtotal + deliveryChargePkr
 
     // Create order
     const order = await prisma.order.create({
@@ -36,7 +69,7 @@ export async function POST(request: NextRequest) {
         phone,
         notes,
         items: {
-          create: items.map((item: any) => ({
+          create: items.map((item: OrderItemInput) => ({
             productId: item.productId,
             quantity: item.quantity,
             price: item.price,

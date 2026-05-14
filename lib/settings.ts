@@ -1,5 +1,23 @@
 import { prisma } from "@/lib/prisma"
 
+const DEFAULT_DELIVERY_CHARGE_PKR = 300
+
+/** Nationwide delivery fee in PKR (store settings, default 300). */
+export async function getDeliveryChargePkr(): Promise<number> {
+  try {
+    const row = await prisma.storeSettings.findFirst({
+      select: { deliveryChargePkr: true },
+    })
+    const n = row?.deliveryChargePkr
+    if (typeof n !== "number" || !Number.isFinite(n) || n < 0) {
+      return DEFAULT_DELIVERY_CHARGE_PKR
+    }
+    return Math.floor(n)
+  } catch {
+    return DEFAULT_DELIVERY_CHARGE_PKR
+  }
+}
+
 export async function getStoreSettings() {
   try {
     const settings = await prisma.storeSettings.findFirst()

@@ -74,12 +74,13 @@ interface Product {
   suitFabric?: string
   usage?: string
   care?: string
-      sizeSSoldOut?: boolean
-      sizeMSoldOut?: boolean
-      sizeLSoldOut?: boolean
-      requiresSizes?: boolean
-      isFeatured?: boolean
-      isNewArrival?: boolean
+  washNote?: string | null
+  sizeSSoldOut?: boolean
+  sizeMSoldOut?: boolean
+  sizeLSoldOut?: boolean
+  requiresSizes?: boolean
+  isFeatured?: boolean
+  isNewArrival?: boolean
 }
 
 export default function AdminProducts() {
@@ -380,6 +381,7 @@ function ProductForm({
     suitFabric: product?.suitFabric || "unstitched 5-meter loose fabric",
     usage: product?.usage || "Shoulder Shawl",
     care: product?.care || "Dry Clean Only",
+    washNote: product?.washNote ?? "",
     isFeatured: product?.isFeatured ?? false,
     isNewArrival: product?.isNewArrival ?? false,
     requiresSizes: product?.requiresSizes !== false,
@@ -673,6 +675,17 @@ function ProductForm({
           id="care"
           value={formData.care}
           onChange={(e) => setFormData({ ...formData, care: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="washNote">Wash / dye note (optional)</Label>
+        <Textarea
+          id="washNote"
+          value={formData.washNote}
+          onChange={(e) => setFormData({ ...formData, washNote: e.target.value })}
+          placeholder='e.g. Note: Dark fabrics (suit) may bleed during the first wash due to dye chemicals.'
+          rows={2}
         />
       </div>
 

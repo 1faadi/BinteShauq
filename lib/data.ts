@@ -21,6 +21,7 @@ export type Product = {
   suitFabric?: string
   usage?: string
   care?: string
+  washNote?: string
   requiresSizes?: boolean
   sizeSSoldOut?: boolean
   sizeMSoldOut?: boolean
@@ -87,6 +88,7 @@ export async function getProducts(sort?: string, collection?: string, limit?: nu
       suitFabric: product.suitFabric ?? undefined,
       usage: product.usage ?? undefined,
       care: product.care ?? undefined,
+      washNote: product.washNote ?? undefined,
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),
     }))
@@ -142,6 +144,7 @@ export async function getProductsByCategories(): Promise<Product[]> {
           suitFabric: product.suitFabric ?? undefined,
           usage: product.usage ?? undefined,
           care: product.care ?? undefined,
+          washNote: product.washNote ?? undefined,
           createdAt: product.createdAt.toISOString(),
           updatedAt: product.updatedAt.toISOString(),
         })
@@ -186,6 +189,7 @@ export async function getBySlug(slug: string): Promise<Product | null> {
       suitFabric: product.suitFabric ?? undefined,
       usage: product.usage ?? undefined,
       care: product.care ?? undefined,
+      washNote: product.washNote ?? undefined,
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),
     }

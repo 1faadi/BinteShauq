@@ -87,6 +87,7 @@ model Product {
   suitFabric   String?
   usage        String?
   care         String?
+  washNote     String? // Optional dye / wash disclaimer shown on PDP
   // Size options for stitched collection (admin-editable sold out per size)
   sizeSSoldOut Boolean      @default(false)
   sizeMSoldOut Boolean      @default(false)
@@ -165,6 +166,7 @@ model StoreSettings {
   requireEmailVerification Boolean  @default(false)
   enableNotifications      Boolean  @default(true)
   lowStockThreshold        Int      @default(10)
+  deliveryChargePkr        Int      @default(300) // Nationwide delivery (PKR), editable in admin
   currency                 String   @default("PKR")
   timezone                 String   @default("Asia/Karachi")
   // Home page hero text (editable from admin)

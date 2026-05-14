@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { allocateUniqueProductSlug } from "@/lib/allocate-unique-product-slug"
+import { invalidateCachesAfterProductMutation } from "@/lib/invalidate-product-cache"
 import { v2 as cloudinary } from 'cloudinary'
 
 cloudinary.config({
@@ -62,6 +64,7 @@ export async function POST(request: NextRequest) {
       suitFabric,
       usage,
       care,
+      washNote,
       isFeatured,
       isNewArrival,
       requiresSizes,
@@ -71,23 +74,7 @@ export async function POST(request: NextRequest) {
       sidebarSections // Array of sidebar section IDs
     } = body
 
-    // Generate unique slug from name
-    const baseSlug = name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "")
-    
-    // Check if slug exists and make it unique
-    let slug = baseSlug
-    let counter = 1
-    while (true) {
-      const existingProduct = await prisma.product.findUnique({
-        where: { slug }
-      })
-      if (!existingProduct) break
-      slug = `${baseSlug}-${counter}`
-      counter++
-    }
+    const slug = await allocateUniqueProductSlug(prisma, name)
 
     const product = await prisma.product.create({
       data: {
@@ -107,6 +94,12 @@ export async function POST(request: NextRequest) {
         suitFabric,
         usage,
         care,
+        washNote:
+          washNote === null ||
+          washNote === undefined ||
+          (typeof washNote === "string" && washNote.trim() === "")
+            ? null
+            : String(washNote).trim(),
         isFeatured: !!isFeatured,
         isNewArrival: !!isNewArrival,
         requiresSizes: requiresSizes !== undefined ? !!requiresSizes : true,
@@ -155,6 +148,8 @@ export async function POST(request: NextRequest) {
 
     // Clear timeout
     clearTimeout(timeoutId)
+
+    invalidateCachesAfterProductMutation()
 
     return NextResponse.json(product)
   } catch (error) {
@@ -232,6 +227,8 @@ export async function DELETE(request: NextRequest) {
     await prisma.product.delete({
       where: { id: productId }
     })
+
+    invalidateCachesAfterProductMutation()
 
     return NextResponse.json({ success: true, message: "Product deleted successfully" })
   } catch (error) {

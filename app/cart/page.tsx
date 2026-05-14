@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import { Logo } from "@/components/logo"
 import { useRouter } from "next/navigation"
@@ -20,6 +20,25 @@ export default function CartPage() {
   const { data: session } = useSession()
   const router = useRouter()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const [deliveryChargePkr, setDeliveryChargePkr] = useState(300)
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/store/delivery-charge")
+        if (!res.ok) return
+        const data: unknown = await res.json()
+        if (data !== null && typeof data === "object" && "deliveryChargePkr" in data) {
+          const n = (data as { deliveryChargePkr: unknown }).deliveryChargePkr
+          if (typeof n === "number" && Number.isFinite(n) && n >= 0) {
+            setDeliveryChargePkr(Math.floor(n))
+          }
+        }
+      } catch {
+        // keep default
+      }
+    })()
+  }, [])
 
   if (!session) {
     return (
@@ -177,12 +196,12 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between">
                 <span>Delivery Charges</span>
-                <span>Rs. 300</span>
+                <span>Rs. {deliveryChargePkr.toLocaleString()}</span>
               </div>
               <Separator />
               <div className="flex justify-between font-semibold text-lg">
                 <span>Total</span>
-                <span>Rs. {(getTotalPrice() + 300).toLocaleString()}</span>
+                <span>Rs. {(getTotalPrice() + deliveryChargePkr).toLocaleString()}</span>
               </div>
               
               <Button 
