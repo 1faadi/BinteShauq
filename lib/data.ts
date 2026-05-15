@@ -21,6 +21,11 @@ export type Product = {
   suitFabric?: string
   usage?: string
   care?: string
+  detailsCustom?: string
+  dupattaShawlKind?: string
+  dupattaShawlDetail?: string
+  trousers?: string
+  embellishment?: string
   washNote?: string
   requiresSizes?: boolean
   sizeSSoldOut?: boolean
@@ -88,6 +93,11 @@ export async function getProducts(sort?: string, collection?: string, limit?: nu
       suitFabric: product.suitFabric ?? undefined,
       usage: product.usage ?? undefined,
       care: product.care ?? undefined,
+      detailsCustom: product.detailsCustom ?? undefined,
+      dupattaShawlKind: product.dupattaShawlKind ?? undefined,
+      dupattaShawlDetail: product.dupattaShawlDetail ?? undefined,
+      trousers: product.trousers ?? undefined,
+      embellishment: product.embellishment ?? undefined,
       washNote: product.washNote ?? undefined,
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),
@@ -101,6 +111,11 @@ export async function getProducts(sort?: string, collection?: string, limit?: nu
     console.error('Error fetching products:', error)
     return []
   }
+}
+
+/** In-stock products with `isFeatured` for the home page (admin: Show on Home). */
+export async function getFeaturedProducts(limit = 12): Promise<Product[]> {
+  return getProducts("newest", undefined, limit, true)
 }
 
 export async function getProductsByCategories(): Promise<Product[]> {
@@ -144,6 +159,11 @@ export async function getProductsByCategories(): Promise<Product[]> {
           suitFabric: product.suitFabric ?? undefined,
           usage: product.usage ?? undefined,
           care: product.care ?? undefined,
+          detailsCustom: product.detailsCustom ?? undefined,
+          dupattaShawlKind: product.dupattaShawlKind ?? undefined,
+          dupattaShawlDetail: product.dupattaShawlDetail ?? undefined,
+          trousers: product.trousers ?? undefined,
+          embellishment: product.embellishment ?? undefined,
           washNote: product.washNote ?? undefined,
           createdAt: product.createdAt.toISOString(),
           updatedAt: product.updatedAt.toISOString(),
@@ -189,6 +209,11 @@ export async function getBySlug(slug: string): Promise<Product | null> {
       suitFabric: product.suitFabric ?? undefined,
       usage: product.usage ?? undefined,
       care: product.care ?? undefined,
+      detailsCustom: product.detailsCustom ?? undefined,
+      dupattaShawlKind: product.dupattaShawlKind ?? undefined,
+      dupattaShawlDetail: product.dupattaShawlDetail ?? undefined,
+      trousers: product.trousers ?? undefined,
+      embellishment: product.embellishment ?? undefined,
       washNote: product.washNote ?? undefined,
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),

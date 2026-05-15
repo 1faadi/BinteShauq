@@ -3,7 +3,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, Star, Truck, Shield, Headphones } from "lucide-react"
-import { getProductImage, getProductsByCategories } from "@/lib/data"
+import { getProductImage, getFeaturedProducts, type Product } from "@/lib/data"
 import { getSidebarSections } from "@/lib/sidebar"
 import { getHeroSettings, getHomeAboutSectionSettings } from "@/lib/settings"
 import {
@@ -39,13 +39,13 @@ function resolvedAboutText(
 }
 
 export default async function HomePage() {
-  let featuredProducts: any[] = []
+  let featuredProducts: Product[] = []
   let sidebarSections: any[] = []
   let heroSettings: Awaited<ReturnType<typeof getHeroSettings>> = null
   let homeAboutSettings: Awaited<ReturnType<typeof getHomeAboutSectionSettings>> = null
 
   try {
-    featuredProducts = await getProductsByCategories()
+    featuredProducts = await getFeaturedProducts()
     sidebarSections = await getSidebarSections()
     ;[heroSettings, homeAboutSettings] = await Promise.all([
       getHeroSettings(),
@@ -135,39 +135,6 @@ export default async function HomePage() {
           </section>
 
           <main className="mx-auto max-w-6xl px-4">
-      {/* Features Section */}
-      <section className="py-8 md:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mb-4">
-              <Truck className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-semibold mb-2">Fastest Shipping</h3>
-            {/* <p className="text-sm text-muted-foreground">
-              Fastest Shipping
-            </p> */}
-          </div>
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mb-4">
-              <Shield className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-semibold mb-2">Committed to exceptional quality</h3>
-            {/* <p className="text-sm text-muted-foreground">
-            Committed to exceptional quality — every fabric, stitch, and detail is carefully inspected to ensure lasting elegance and comfort in every piece."
-            </p> */}
-          </div>
-          <div className="text-center sm:col-span-2 md:col-span-1">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mb-4">
-              <Headphones className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-semibold mb-2">24/7 Support</h3>
-            {/* <p className="text-sm text-muted-foreground">
-              Customer support available round the clock
-            </p> */}
-          </div>
-        </div>
-      </section>
-
       {/* Featured Products */}
       <section className="py-8 md:py-16 border-t">
         <div className="text-center mb-8 md:mb-12">
@@ -176,6 +143,12 @@ export default async function HomePage() {
             Handpicked selection of our most popular karandi shawls
           </p>
         </div>
+        {featuredProducts.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8 px-4">
+            Featured items will appear here once they are marked in the admin catalog.
+          </p>
+        ) : (
+        <>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {featuredProducts.map((product) => (
             <Card key={product.id} className="group overflow-hidden">
@@ -219,6 +192,41 @@ export default async function HomePage() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
+        </div>
+        </>
+        )}
+      </section>
+
+      {/* Features Section */}
+      <section className="py-8 md:py-16 border-t">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mb-4">
+              <Truck className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="font-semibold mb-2">Fastest Shipping</h3>
+            {/* <p className="text-sm text-muted-foreground">
+              Fastest Shipping
+            </p> */}
+          </div>
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mb-4">
+              <Shield className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="font-semibold mb-2">Committed to exceptional quality</h3>
+            {/* <p className="text-sm text-muted-foreground">
+            Committed to exceptional quality — every fabric, stitch, and detail is carefully inspected to ensure lasting elegance and comfort in every piece."
+            </p> */}
+          </div>
+          <div className="text-center sm:col-span-2 md:col-span-1">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full mb-4">
+              <Headphones className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="font-semibold mb-2">24/7 Support</h3>
+            {/* <p className="text-sm text-muted-foreground">
+              Customer support available round the clock
+            </p> */}
+          </div>
         </div>
       </section>
 

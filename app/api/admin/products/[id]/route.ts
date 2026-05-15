@@ -4,6 +4,10 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { allocateUniqueProductSlug } from "@/lib/allocate-unique-product-slug"
 import { invalidateCachesAfterProductMutation } from "@/lib/invalidate-product-cache"
+import {
+  nullableTrimmedString,
+  parseDupattaShawlKind,
+} from "@/lib/product-field-utils"
 
 export async function GET(
   request: NextRequest,
@@ -64,11 +68,12 @@ export async function PUT(
       articleName,
       color,
       fabric,
-      embroidery,
-      shawlLength,
-      suitFabric,
-      usage,
       care,
+      detailsCustom,
+      dupattaShawlKind,
+      dupattaShawlDetail,
+      trousers,
+      embellishment,
       washNote,
       isFeatured,
       isNewArrival,
@@ -97,12 +102,21 @@ export async function PUT(
     // Additional fields
     if (articleName !== undefined) updateData.articleName = articleName
     if (color !== undefined) updateData.color = color
-    if (fabric !== undefined) updateData.fabric = fabric
-    if (embroidery !== undefined) updateData.embroidery = embroidery
-    if (shawlLength !== undefined) updateData.shawlLength = shawlLength
-    if (suitFabric !== undefined) updateData.suitFabric = suitFabric
-    if (usage !== undefined) updateData.usage = usage
-    if (care !== undefined) updateData.care = care
+    if (fabric !== undefined) updateData.fabric = nullableTrimmedString(fabric)
+    if (care !== undefined) updateData.care = nullableTrimmedString(care)
+    if (detailsCustom !== undefined) {
+      updateData.detailsCustom = nullableTrimmedString(detailsCustom)
+    }
+    if (dupattaShawlKind !== undefined) {
+      updateData.dupattaShawlKind = parseDupattaShawlKind(dupattaShawlKind)
+    }
+    if (dupattaShawlDetail !== undefined) {
+      updateData.dupattaShawlDetail = nullableTrimmedString(dupattaShawlDetail)
+    }
+    if (trousers !== undefined) updateData.trousers = nullableTrimmedString(trousers)
+    if (embellishment !== undefined) {
+      updateData.embellishment = nullableTrimmedString(embellishment)
+    }
     if (washNote !== undefined) {
       updateData.washNote =
         washNote === null ||

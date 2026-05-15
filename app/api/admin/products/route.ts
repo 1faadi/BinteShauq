@@ -4,6 +4,10 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { allocateUniqueProductSlug } from "@/lib/allocate-unique-product-slug"
 import { invalidateCachesAfterProductMutation } from "@/lib/invalidate-product-cache"
+import {
+  nullableTrimmedString,
+  parseDupattaShawlKind,
+} from "@/lib/product-field-utils"
 import { v2 as cloudinary } from 'cloudinary'
 
 cloudinary.config({
@@ -59,11 +63,12 @@ export async function POST(request: NextRequest) {
       articleName,
       color,
       fabric,
-      embroidery,
-      shawlLength,
-      suitFabric,
-      usage,
       care,
+      detailsCustom,
+      dupattaShawlKind,
+      dupattaShawlDetail,
+      trousers,
+      embellishment,
       washNote,
       isFeatured,
       isNewArrival,
@@ -88,12 +93,13 @@ export async function POST(request: NextRequest) {
         // Additional fields
         articleName,
         color,
-        fabric,
-        embroidery,
-        shawlLength,
-        suitFabric,
-        usage,
-        care,
+        fabric: nullableTrimmedString(fabric),
+        care: nullableTrimmedString(care),
+        detailsCustom: nullableTrimmedString(detailsCustom),
+        dupattaShawlKind: parseDupattaShawlKind(dupattaShawlKind),
+        dupattaShawlDetail: nullableTrimmedString(dupattaShawlDetail),
+        trousers: nullableTrimmedString(trousers),
+        embellishment: nullableTrimmedString(embellishment),
         washNote:
           washNote === null ||
           washNote === undefined ||

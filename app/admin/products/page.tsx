@@ -53,6 +53,8 @@ import Link from "next/link"
 import Image from "next/image"
 import { toast } from "sonner"
 import { Checkbox } from "@/components/ui/checkbox"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import type { DupattaShawlKind } from "@/lib/product-details"
 
 interface Product {
   id: string
@@ -69,12 +71,18 @@ interface Product {
   articleName?: string
   color?: string
   fabric?: string
-  embroidery?: string
-  shawlLength?: string
-  suitFabric?: string
-  usage?: string
   care?: string
+  detailsCustom?: string | null
+  dupattaShawlKind?: string | null
+  dupattaShawlDetail?: string | null
+  trousers?: string | null
+  embellishment?: string | null
   washNote?: string | null
+  /** Legacy fields for hydrating edit form from older rows */
+  embroidery?: string | null
+  shawlLength?: string | null
+  suitFabric?: string | null
+  usage?: string | null
   sizeSSoldOut?: boolean
   sizeMSoldOut?: boolean
   sizeLSoldOut?: boolean
@@ -357,6 +365,18 @@ export default function AdminProducts() {
   )
 }
 
+function initialDupattaShawlKind(product?: Product): DupattaShawlKind {
+  const kind = product?.dupattaShawlKind?.toLowerCase()
+  if (kind === "dupatta" || kind === "shawl") {
+    return kind
+  }
+  const usage = product?.usage?.toLowerCase() ?? ""
+  if (usage.includes("dupatta")) {
+    return "dupatta"
+  }
+  return "shawl"
+}
+
 // Product Form Component
 function ProductForm({ 
   product, 
@@ -375,12 +395,18 @@ function ProductForm({
     // Additional attributes from pd.md
     articleName: product?.articleName || "",
     color: product?.color || "",
-    fabric: product?.fabric || "Staple Karrandi",
-    embroidery: product?.embroidery || "Custom-designed premium threadwork",
-    shawlLength: product?.shawlLength || "2.75 meters",
-    suitFabric: product?.suitFabric || "unstitched 5-meter loose fabric",
-    usage: product?.usage || "Shoulder Shawl",
-    care: product?.care || "Dry Clean Only",
+    detailsCustom: product?.detailsCustom ?? "",
+    fabric: product?.fabric ?? "",
+    dupattaShawlKind: initialDupattaShawlKind(product),
+    dupattaShawlDetail:
+      product?.dupattaShawlDetail ??
+      product?.shawlLength ??
+      product?.usage ??
+      "",
+    trousers: product?.trousers ?? product?.suitFabric ?? "",
+    embellishment:
+      product?.embellishment ?? product?.embroidery ?? "",
+    care: product?.care ?? "",
     washNote: product?.washNote ?? "",
     isFeatured: product?.isFeatured ?? false,
     isNewArrival: product?.isNewArrival ?? false,
@@ -621,62 +647,112 @@ function ProductForm({
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <Label htmlFor="fabric">Fabric</Label>
-          <Input
-            id="fabric"
-            value={formData.fabric}
-            onChange={(e) => setFormData({ ...formData, fabric: e.target.value })}
-          />
-        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="embroidery">Embroidery</Label>
-          <Input
-            id="embroidery"
-            value={formData.embroidery}
-            onChange={(e) => setFormData({ ...formData, embroidery: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="shawlLength">Shawl Length</Label>
-          <Input
-            id="shawlLength"
-            value={formData.shawlLength}
-            onChange={(e) => setFormData({ ...formData, shawlLength: e.target.value })}
-          />
-        </div>
-      </div>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Product details card</CardTitle>
+          <CardDescription>
+            Shown on the product page as a table, in this order.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="detailsCustom">Custom line (shown first)</Label>
+            <Textarea
+              id="detailsCustom"
+              value={formData.detailsCustom}
+              onChange={(e) =>
+                setFormData({ ...formData, detailsCustom: e.target.value })
+              }
+              placeholder="Write anything for the top of the table, e.g. Color: Ice Blue"
+              rows={2}
+            />
+          </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="suitFabric">Suit Fabric</Label>
-          <Input
-            id="suitFabric"
-            value={formData.suitFabric}
-            onChange={(e) => setFormData({ ...formData, suitFabric: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="usage">Usage</Label>
-          <Input
-            id="usage"
-            value={formData.usage}
-            onChange={(e) => setFormData({ ...formData, usage: e.target.value })}
-          />
-        </div>
-      </div>
+          <div>
+            <Label htmlFor="fabric">Fabric</Label>
+            <Input
+              id="fabric"
+              value={formData.fabric}
+              onChange={(e) =>
+                setFormData({ ...formData, fabric: e.target.value })
+              }
+              placeholder="e.g. Pure Lawn"
+            />
+          </div>
 
-      <div>
-        <Label htmlFor="care">Care Instructions</Label>
-        <Input
-          id="care"
-          value={formData.care}
-          onChange={(e) => setFormData({ ...formData, care: e.target.value })}
-        />
-      </div>
+          <div>
+            <Label>Dupatta / Shawl</Label>
+            <RadioGroup
+              value={formData.dupattaShawlKind}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  dupattaShawlKind: value as DupattaShawlKind,
+                })
+              }
+              className="mt-2 flex gap-6"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="dupatta" id="dupatta-shawl-dupatta" />
+                <Label htmlFor="dupatta-shawl-dupatta" className="font-normal">
+                  Dupatta
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="shawl" id="dupatta-shawl-shawl" />
+                <Label htmlFor="dupatta-shawl-shawl" className="font-normal">
+                  Shawl
+                </Label>
+              </div>
+            </RadioGroup>
+            <Input
+              id="dupattaShawlDetail"
+              value={formData.dupattaShawlDetail}
+              onChange={(e) =>
+                setFormData({ ...formData, dupattaShawlDetail: e.target.value })
+              }
+              placeholder="Details, e.g. 2.75 meters"
+              className="mt-2"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="trousers">Trousers</Label>
+            <Input
+              id="trousers"
+              value={formData.trousers}
+              onChange={(e) =>
+                setFormData({ ...formData, trousers: e.target.value })
+              }
+              placeholder="e.g. unstitched 5-meter loose fabric"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="embellishment">Embellishment</Label>
+            <Input
+              id="embellishment"
+              value={formData.embellishment}
+              onChange={(e) =>
+                setFormData({ ...formData, embellishment: e.target.value })
+              }
+              placeholder="e.g. Custom-designed premium threadwork"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="care">Care</Label>
+            <Input
+              id="care"
+              value={formData.care}
+              onChange={(e) => setFormData({ ...formData, care: e.target.value })}
+              placeholder="e.g. Hand wash only"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       <div>
         <Label htmlFor="washNote">Wash / dye note (optional)</Label>

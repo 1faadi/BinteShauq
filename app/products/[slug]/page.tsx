@@ -2,6 +2,8 @@ import { getBySlug, getProductImages } from "@/lib/data"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
+import { ProductDetailsTable } from "@/components/product-details-table"
+import { hasProductDetailsContent } from "@/lib/product-details"
 import { ProductActions } from "./product-actions"
 
 // Make this page dynamic to avoid large static generation
@@ -29,6 +31,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .split(/\n\n+/)
     .map((block) => block.trim())
     .filter((block) => block.length > 0)
+
+  const showDetailsCard = hasProductDetailsContent(product)
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -69,49 +73,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
             ) : null}
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Product Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {product.fabric && (
-                <div className="flex justify-between gap-4">
-                  <span className="font-medium">Fabric:</span>
-                  <span className="text-right">{product.fabric}</span>
-                </div>
-              )}
-              {product.embroidery && (
-                <div className="flex justify-between gap-4">
-                  <span className="font-medium">Embroidery:</span>
-                  <span className="text-right">{product.embroidery}</span>
-                </div>
-              )}
-              {product.shawlLength && (
-                <div className="flex justify-between gap-4">
-                  <span className="font-medium">Shawl Length:</span>
-                  <span className="text-right">{product.shawlLength}</span>
-                </div>
-              )}
-              {product.suitFabric && (
-                <div className="flex justify-between gap-4">
-                  <span className="font-medium">Suit Fabric:</span>
-                  <span className="text-right">{product.suitFabric}</span>
-                </div>
-              )}
-              {product.usage && (
-                <div className="flex justify-between gap-4">
-                  <span className="font-medium">Usage:</span>
-                  <span className="text-right">{product.usage}</span>
-                </div>
-              )}
-              {product.care && (
-                <div className="flex justify-between gap-4">
-                  <span className="font-medium">Care:</span>
-                  <span className="text-right">{product.care}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {showDetailsCard ? (
+            <Card className="overflow-hidden">
+              <CardHeader className="border-b bg-muted/20 pb-4">
+                <CardTitle className="text-lg">Product Details</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <ProductDetailsTable product={product} />
+              </CardContent>
+            </Card>
+          ) : null}
 
           <ProductActions
             product={{

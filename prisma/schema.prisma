@@ -82,11 +82,16 @@ model Product {
   articleName  String?
   color        String?
   fabric       String?
-  embroidery   String?
-  shawlLength  String?
-  suitFabric   String?
-  usage        String?
+  embroidery   String? // legacy; prefer embellishment
+  shawlLength  String? // legacy; prefer dupattaShawlDetail
+  suitFabric   String? // legacy; prefer trousers
+  usage        String? // legacy; prefer dupattaShawlDetail
   care         String?
+  detailsCustom       String? // Free-form line shown first in product details table
+  dupattaShawlKind    String? // "dupatta" | "shawl"
+  dupattaShawlDetail  String?
+  trousers            String?
+  embellishment       String?
   washNote     String? // Optional dye / wash disclaimer shown on PDP
   // Size options for stitched collection (admin-editable sold out per size)
   sizeSSoldOut Boolean      @default(false)
