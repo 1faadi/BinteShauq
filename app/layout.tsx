@@ -10,6 +10,7 @@ import { Suspense } from "react"
 import { SessionProvider } from "@/components/session-provider"
 import { CartProvider } from "@/lib/cart-context"
 import { Toaster } from "@/components/ui/sonner"
+import { MetaPixel } from "@/components/meta-pixel"
 
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
 const lora = Lora({ subsets: ["latin"], variable: "--font-lora" })
@@ -51,6 +52,7 @@ export default function RootLayout({
           </CartProvider>
         </SessionProvider>
         <Analytics />
+        <MetaPixel />
       </body>
     </html>
   )
