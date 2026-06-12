@@ -18,7 +18,15 @@ export function SortDropdown() {
   function onChange(next: string) {
     const p = new URLSearchParams(params.toString())
     p.set("sort", next)
-    router.push(`${pathname}?${p.toString()}`)
+
+    // Only /shop and /collections/* render a sortable product grid. From any
+    // other page (home, product detail, etc.) send the user to the shop so the
+    // sort actually has something to apply to.
+    const isSortableListing =
+      pathname === "/shop" || pathname.startsWith("/collections/")
+    const targetPath = isSortableListing ? pathname : "/shop"
+
+    router.push(`${targetPath}?${p.toString()}`)
   }
 
   return (

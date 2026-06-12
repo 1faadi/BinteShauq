@@ -7,9 +7,9 @@ import { PageLoader } from "@/components/ui/page-loader"
 // Make this page dynamic to avoid build-time database calls
 export const dynamic = 'force-dynamic'
 
-async function ShopContent() {
-  const items = await getProducts()
-  
+async function ShopContent({ sort }: { sort?: string }) {
+  const items = await getProducts(sort)
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 md:py-10">
       <div className="mb-6 md:mb-8">
@@ -37,10 +37,17 @@ async function ShopContent() {
   )
 }
 
-export default function ShopPage() {
+export default async function ShopPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ sort?: string }>
+}) {
+  const sp = searchParams ? await searchParams : {}
+  const sort = sp.sort
+
   return (
-    <Suspense fallback={<PageLoader label="Loading shop" fullScreen />}>
-      <ShopContent />
+    <Suspense key={sort ?? "featured"} fallback={<PageLoader label="Loading shop" fullScreen />}>
+      <ShopContent sort={sort} />
     </Suspense>
   )
 }
