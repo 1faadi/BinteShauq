@@ -47,24 +47,28 @@ export function AdminSidebar() {
         isCollapsed ? "md:w-16" : "md:w-64"
       )}>
         <div className="flex-1 flex flex-col min-h-0 bg-card border-r">
-          <div className="flex items-center h-16 flex-shrink-0 px-4 border-b">
-            <Link href="/admin" className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="h-8 w-8 rounded-lg overflow-hidden">
-                  <Image src="/PHOTO-2025-10-02-00-42-10.jpg" alt="Admin Logo" width={32} height={32} className="h-8 w-8 object-cover" />
+          <div className={cn(
+            "flex items-center h-16 flex-shrink-0 border-b",
+            isCollapsed ? "justify-center px-2" : "px-4"
+          )}>
+            {!isCollapsed && (
+              <Link href="/admin" className="flex items-center min-w-0">
+                <div className="flex-shrink-0">
+                  <div className="h-8 w-8 rounded-lg overflow-hidden">
+                    <Image src="/PHOTO-2025-10-02-00-42-10.jpg" alt="Admin Logo" width={32} height={32} className="h-8 w-8 object-cover" />
+                  </div>
                 </div>
-              </div>
-              {!isCollapsed && (
-                <div className="ml-3">
-                  <h1 className="text-lg font-semibold text-foreground">Admin Panel</h1>
+                <div className="ml-3 min-w-0">
+                  <h1 className="text-lg font-semibold text-foreground truncate">Admin Panel</h1>
                 </div>
-              )}
-            </Link>
+              </Link>
+            )}
             <Button
               variant="ghost"
-              size="sm"
-              className="ml-auto"
+              size="icon-sm"
+              className={cn(!isCollapsed && "ml-auto")}
               onClick={toggleSidebar}
+              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
               {isCollapsed ? (
                 <ChevronRight className="h-4 w-4" />
@@ -82,7 +86,8 @@ export function AdminSidebar() {
                     key={item.name}
                     href={item.href}
                     className={cn(
-                      "group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors",
+                      "group flex items-center py-2 text-sm font-medium rounded-md transition-colors",
+                      isCollapsed ? "justify-center px-0 mx-auto h-10 w-10" : "px-2",
                       isActive
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"

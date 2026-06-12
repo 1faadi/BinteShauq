@@ -25,8 +25,8 @@ export function AdminHeader() {
   }
 
   return (
-    <header className="bg-card border-b px-6 py-4">
-      <div className="flex items-center justify-between">
+    <header className="bg-card border-b h-16 px-6 flex items-center">
+      <div className="flex items-center justify-between w-full">
         <div className="flex items-center space-x-4">
           <Button
             variant="ghost"
