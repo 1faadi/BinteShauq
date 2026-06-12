@@ -2,6 +2,7 @@ import { Suspense } from "react"
 import { getProducts, getProductImage, getProductImages } from "@/lib/data"
 import { ProductCard } from "@/components/product-card"
 import { SortDropdown } from "@/components/sort-dropdown"
+import { PageLoader } from "@/components/ui/page-loader"
 
 // Make this page dynamic to avoid build-time database calls
 export const dynamic = 'force-dynamic'
@@ -25,7 +26,8 @@ async function ShopContent() {
             id={p.id}
             slug={p.slug} 
             name={p.name} 
-            price={p.price} 
+            price={p.price}
+            compareAtPrice={p.compareAtPrice}
             image={getProductImage(p)}
             images={getProductImages(p)}
           />
@@ -37,7 +39,7 @@ async function ShopContent() {
 
 export default function ShopPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<PageLoader label="Loading shop" fullScreen />}>
       <ShopContent />
     </Suspense>
   )

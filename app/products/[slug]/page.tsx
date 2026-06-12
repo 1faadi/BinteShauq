@@ -5,6 +5,7 @@ import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { ProductDetailsTable } from "@/components/product-details-table"
 import { hasProductDetailsContent } from "@/lib/product-details"
 import { ProductActions } from "./product-actions"
+import { ProductPriceDisplay } from "@/components/product-price-display"
 
 // Make this page dynamic to avoid large static generation
 export const dynamic = "force-dynamic"
@@ -56,7 +57,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         <div className="space-y-6">
           <div>
-            <h2 className="text-2xl font-bold mb-4">Rs. {product.price.toLocaleString()}</h2>
+            <div className="mb-4">
+              <ProductPriceDisplay
+                price={product.price}
+                compareAtPrice={product.compareAtPrice}
+                size="lg"
+              />
+            </div>
             <div className="space-y-2 text-muted-foreground">
               {descriptionParagraphs.length > 0 ? (
                 descriptionParagraphs.map((paragraph, i) => (

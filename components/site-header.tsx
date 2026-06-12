@@ -9,7 +9,7 @@ import { Button } from "./ui/button"
 import { UserMenu } from "./user-menu"
 import { useCart } from "@/lib/cart-context"
 import { ShoppingCart, Menu } from "lucide-react"
-import { Logo } from "./logo"
+import { Logo, LogoMark, Wordmark } from "./logo"
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet"
 import { SidebarHeaderTrigger } from "./sidebar-header-trigger"
 import { SHOP_NAV_GROUPS } from "@/lib/shop-nav"
@@ -34,8 +34,9 @@ export function SiteHeader(): React.ReactElement {
         </div>
 
         <div className="flex min-w-0 flex-1 items-center justify-center gap-4 sm:gap-6 lg:gap-10">
-          <Link href="/" className="flex-shrink-0">
-            <Logo size={32} />
+          <Link href="/" className="flex min-w-0 flex-shrink items-center gap-2 sm:gap-3">
+            <LogoMark size={32} />
+            <Wordmark className="hidden truncate min-[420px]:inline" />
           </Link>
           <nav className="hidden lg:flex items-center gap-1">
             <Link href="/" className={navLinkClass}>

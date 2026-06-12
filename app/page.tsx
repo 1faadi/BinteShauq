@@ -15,6 +15,8 @@ import {
 import { MainSidebar } from "@/components/main-sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { SidebarWrapper } from "@/components/sidebar-wrapper"
+import { ProductPriceDisplay } from "@/components/product-price-display"
+import { SessionProvider } from "@/components/session-provider"
 
 // Make this page dynamic to avoid build-time database calls
 export const dynamic = 'force-dynamic'
@@ -87,10 +89,11 @@ export default async function HomePage() {
   const homeAboutImgAlt = resolvedAboutText(homeAboutSettings?.homeAboutImageAlt, DEFAULT_HOME_ABOUT_ALT)
 
   return (
-    <SidebarProvider defaultOpen={false}>
-      <SidebarWrapper>
-        <MainSidebar sections={sidebarSections} />
-        <SidebarInset>
+    <SessionProvider>
+      <SidebarProvider defaultOpen={false}>
+        <SidebarWrapper>
+          <MainSidebar sections={sidebarSections} />
+          <SidebarInset>
           {/* Hero — full-width background image with left-aligned overlay */}
           <section className="relative w-full min-h-[70vh] md:min-h-[85vh] overflow-hidden">
             <Image
@@ -174,7 +177,11 @@ export default async function HomePage() {
                   {product.description}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-base md:text-lg font-bold">Rs. {product.price.toLocaleString()}</span>
+                  <ProductPriceDisplay
+                    price={product.price}
+                    compareAtPrice={product.compareAtPrice}
+                    size="md"
+                  />
                   <Button size="sm" asChild>
                     <Link href={`/products/${product.slug}`}>
                       View Details
@@ -274,8 +281,9 @@ export default async function HomePage() {
         </div>
       </section>
           </main>
-        </SidebarInset>
-      </SidebarWrapper>
-    </SidebarProvider>
+          </SidebarInset>
+        </SidebarWrapper>
+      </SidebarProvider>
+    </SessionProvider>
   )
 }

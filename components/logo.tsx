@@ -21,8 +21,12 @@ export function LogoMark({ size = 56 }: { size?: number }) {
   )
 }
 
-export function Wordmark() {
-  return <span className="caps text-sm tracking-[0.35em]">SADIA ISMAIL</span>
+export function Wordmark({ className }: { className?: string }) {
+  return (
+    <span className={`caps text-sm tracking-[0.35em] ${className ?? ""}`}>
+      SADIA ISMAIL
+    </span>
+  )
 }
 
 export function Logo({ size = 40 }: { size?: number }) {

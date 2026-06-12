@@ -55,6 +55,7 @@ import { toast } from "sonner"
 import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { DupattaShawlKind } from "@/lib/product-details"
+import { ProductPriceDisplay } from "@/components/product-price-display"
 
 interface Product {
   id: string
@@ -62,6 +63,7 @@ interface Product {
   slug: string
   description: string
   price: number
+  compareAtPrice?: number | null
   images: string[]
   collection: string
   inStock: boolean
@@ -279,8 +281,12 @@ export default function AdminProducts() {
                   <TableCell>
                     <Badge variant="outline">{product.collection}</Badge>
                   </TableCell>
-                  <TableCell className="font-medium">
-                    Rs. {product.price.toLocaleString()}
+                  <TableCell>
+                    <ProductPriceDisplay
+                      price={product.price}
+                      compareAtPrice={product.compareAtPrice ?? undefined}
+                      size="sm"
+                    />
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
@@ -389,6 +395,7 @@ function ProductForm({
     name: product?.name || "",
     description: product?.description || "",
     price: product?.price || 0,
+    compareAtPrice: product?.compareAtPrice ?? "",
     collection: product?.collection || "",
     images: product?.images || [],
     inStock: product?.inStock ?? true,
@@ -593,15 +600,35 @@ function ProductForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="price">Price (Rs.) *</Label>
+          <Label htmlFor="price">Current Price (Rs.) *</Label>
           <Input
             id="price"
             type="number"
+            min={0}
             value={formData.price}
-            onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) })}
+            onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })}
             required
           />
         </div>
+        <div>
+          <Label htmlFor="compareAtPrice">Old Price / Compare-at (Rs.) — optional</Label>
+          <Input
+            id="compareAtPrice"
+            type="number"
+            min={0}
+            value={formData.compareAtPrice}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                compareAtPrice: e.target.value === "" ? "" : parseInt(e.target.value) || "",
+              })
+            }
+            placeholder="Higher original price for sale display"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="color">Color</Label>
           <Input
@@ -611,6 +638,20 @@ function ProductForm({
             placeholder="e.g., Black"
           />
         </div>
+        {typeof formData.price === "number" &&
+        typeof formData.compareAtPrice === "number" &&
+        formData.compareAtPrice > formData.price ? (
+          <div className="flex items-end">
+            <div className="rounded-lg border bg-muted/30 p-3 w-full">
+              <p className="text-xs text-muted-foreground mb-1">Storefront preview</p>
+              <ProductPriceDisplay
+                price={formData.price}
+                compareAtPrice={formData.compareAtPrice}
+                size="md"
+              />
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div>

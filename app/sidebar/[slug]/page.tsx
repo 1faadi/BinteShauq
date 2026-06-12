@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import Link from "next/link"
 import { getProductImage } from "@/lib/data"
+import { ProductPriceDisplay } from "@/components/product-price-display"
 import { ArrowLeft } from "lucide-react"
 
 export const dynamic = 'force-dynamic'
@@ -113,7 +114,11 @@ export default async function SidebarSectionPage({ params, searchParams }: PageP
                   {product.description}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-base md:text-lg font-bold">Rs. {product.price.toLocaleString()}</span>
+                  <ProductPriceDisplay
+                    price={product.price}
+                    compareAtPrice={product.compareAtPrice ?? undefined}
+                    size="md"
+                  />
                   <Button size="sm" asChild>
                     <Link href={`/products/${product.slug}`}>
                       View Details

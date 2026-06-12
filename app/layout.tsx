@@ -11,11 +11,12 @@ import { SessionProvider } from "@/components/session-provider"
 import { CartProvider } from "@/lib/cart-context"
 import { Toaster } from "@/components/ui/sonner"
 import { MetaPixel } from "@/components/meta-pixel"
+import { TopProgressBar } from "@/components/top-progress-bar"
 
-const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
-const lora = Lora({ subsets: ["latin"], variable: "--font-lora" })
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
-const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat" })
+const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair", display: "swap" })
+const lora = Lora({ subsets: ["latin"], variable: "--font-lora", display: "swap" })
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" })
+const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat", display: "swap" })
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -42,7 +43,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link
+          rel="preconnect"
+          href="https://res.cloudinary.com"
+          crossOrigin="anonymous"
+        />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+      </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} ${playfair.variable} ${lora.variable} ${inter.variable} ${montserrat.variable}`}>
+        <TopProgressBar />
         <SessionProvider>
           <CartProvider>
             <Suspense fallback={null}>

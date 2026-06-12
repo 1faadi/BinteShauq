@@ -7,6 +7,7 @@ export type Product = {
   slug: string
   collection: string
   price: number
+  compareAtPrice?: number
   images: string[] // Cloudinary URLs
   description: string
   inStock: boolean
@@ -85,6 +86,7 @@ export async function getProducts(sort?: string, collection?: string, limit?: nu
     // Convert Date objects to strings and null to undefined for serialization
     const processedProducts: Product[] = products.map((product: any) => ({
       ...product,
+      compareAtPrice: product.compareAtPrice ?? undefined,
       articleName: product.articleName ?? undefined,
       color: product.color ?? undefined,
       fabric: product.fabric ?? undefined,
@@ -151,6 +153,7 @@ export async function getProductsByCategories(): Promise<Product[]> {
         // Convert Date objects to strings and null to undefined for serialization
         products.push({
           ...product,
+          compareAtPrice: product.compareAtPrice ?? undefined,
           articleName: product.articleName ?? undefined,
           color: product.color ?? undefined,
           fabric: product.fabric ?? undefined,
@@ -201,6 +204,7 @@ export async function getBySlug(slug: string): Promise<Product | null> {
     // Convert Date objects to strings and null to undefined for serialization
     const processedProduct = {
       ...product,
+      compareAtPrice: product.compareAtPrice ?? undefined,
       articleName: product.articleName ?? undefined,
       color: product.color ?? undefined,
       fabric: product.fabric ?? undefined,

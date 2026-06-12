@@ -49,6 +49,7 @@ export default async function CollectionPage({
               slug={p.slug}
               name={p.name}
               price={p.price}
+              compareAtPrice={p.compareAtPrice}
               image={p.images?.[0]}
               images={p.images}
             />

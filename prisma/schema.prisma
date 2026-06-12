@@ -72,8 +72,9 @@ model Product {
   name         String
   slug         String        @unique
   description  String
-  price        Int
-  images       String[] // Cloudinary URLs
+  price          Int
+  compareAtPrice Int? // Optional original price; shown struck-through when > price
+  images         String[] // Cloudinary URLs
   collection   String
   inStock      Boolean       @default(true)
   isFeatured   Boolean       @default(false)

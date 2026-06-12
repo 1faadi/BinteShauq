@@ -31,15 +31,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const { data: session } = useSession()
+  const userId = session?.user?.email ?? null
 
-  // Load cart items on mount and when session changes
+  // Load cart items only when the signed-in user actually changes, not on every
+  // session object refresh (which would refetch the cart needlessly).
   useEffect(() => {
-    if (session?.user) {
+    if (userId) {
       loadCartItems()
     } else {
       setItems([])
     }
-  }, [session])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId])
 
   const loadCartItems = async () => {
     if (!session?.user) return

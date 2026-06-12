@@ -28,6 +28,7 @@ export default async function NewArrivalsPage() {
             slug={p.slug}
             name={p.name}
             price={p.price}
+            compareAtPrice={p.compareAtPrice}
             image={getProductImage(p)}
             images={getProductImages(p)}
           />

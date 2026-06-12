@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { allocateUniqueProductSlug } from "@/lib/allocate-unique-product-slug"
 import { invalidateCachesAfterProductMutation } from "@/lib/invalidate-product-cache"
+import { parseCompareAtPriceInput } from "@/lib/compare-at-price"
 import {
   nullableTrimmedString,
   parseDupattaShawlKind,
@@ -56,7 +57,8 @@ export async function POST(request: NextRequest) {
     const { 
       name, 
       description, 
-      price, 
+      price,
+      compareAtPrice,
       collection, 
       images, // Array of Cloudinary URLs
       inStock,
@@ -87,6 +89,7 @@ export async function POST(request: NextRequest) {
         slug,
         description,
         price: parseInt(price),
+        compareAtPrice: parseCompareAtPriceInput(compareAtPrice),
         collection,
         images: Array.isArray(images) ? images : [],
         inStock: inStock ?? true,

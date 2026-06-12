@@ -7,19 +7,31 @@ import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
 import { useCart } from "@/lib/cart-context"
 import { ShoppingCart, Eye } from "lucide-react"
+import { ProductPriceDisplay } from "@/components/product-price-display"
 
 type Props = {
   id: string
   slug: string
   name: string
   price?: number
+  compareAtPrice?: number
   image?: string
   images?: string[]
   className?: string
   showAddToCart?: boolean
 }
 
-export function ProductCard({ id, slug, name, price, image, images, className, showAddToCart = true }: Props) {
+export function ProductCard({
+  id,
+  slug,
+  name,
+  price,
+  compareAtPrice,
+  image,
+  images,
+  className,
+  showAddToCart = true,
+}: Props) {
   const [isHovered, setIsHovered] = useState(false)
   const [current, setCurrent] = useState(0)
   const { addToCart, isLoading } = useCart()
@@ -130,7 +142,11 @@ export function ProductCard({ id, slug, name, price, image, images, className, s
         <div className="flex items-center justify-between mb-2">
           <div className="caps-tight text-xs font-medium">{name}</div>
           {typeof price === "number" ? (
-            <div className="text-sm font-semibold">Rs. {price.toLocaleString()}</div>
+            <ProductPriceDisplay
+              price={price}
+              compareAtPrice={compareAtPrice}
+              size="sm"
+            />
           ) : null}
         </div>
         

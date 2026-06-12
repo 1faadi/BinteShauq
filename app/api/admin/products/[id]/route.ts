@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { allocateUniqueProductSlug } from "@/lib/allocate-unique-product-slug"
 import { invalidateCachesAfterProductMutation } from "@/lib/invalidate-product-cache"
+import { parseCompareAtPriceInput } from "@/lib/compare-at-price"
 import {
   nullableTrimmedString,
   parseDupattaShawlKind,
@@ -61,7 +62,8 @@ export async function PUT(
     const { 
       name, 
       description, 
-      price, 
+      price,
+      compareAtPrice,
       collection, 
       images, 
       inStock,
@@ -96,6 +98,9 @@ export async function PUT(
     if (slug !== undefined) updateData.slug = slug
     if (description) updateData.description = description
     if (price) updateData.price = parseInt(price)
+    if (compareAtPrice !== undefined) {
+      updateData.compareAtPrice = parseCompareAtPriceInput(compareAtPrice)
+    }
     if (collection) updateData.collection = collection
     if (images) updateData.images = images
     if (typeof inStock === "boolean") updateData.inStock = inStock
