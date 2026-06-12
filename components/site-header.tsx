@@ -21,6 +21,11 @@ export function SiteHeader(): React.ReactElement {
   const { data: session, status } = useSession()
   const { getTotalItems } = useCart()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const handleSignOut = async (): Promise<void> => {
+    setIsMobileMenuOpen(false)
+    await signOut({ redirect: false })
+    window.location.assign("/")
+  }
 
   return (
     <header
@@ -185,8 +190,7 @@ export function SiteHeader(): React.ReactElement {
                         <Button
                           variant="destructive"
                           onClick={() => {
-                            void signOut()
-                            setIsMobileMenuOpen(false)
+                            void handleSignOut()
                           }}
                           className="w-full"
                         >

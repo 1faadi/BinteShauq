@@ -28,7 +28,9 @@ export function UserMenu({ user }: UserMenuProps) {
   const router = useRouter()
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/" })
+    setIsOpen(false)
+    await signOut({ redirect: false })
+    window.location.assign("/")
   }
 
   const getInitials = (name: string | null | undefined) => {

@@ -19,6 +19,11 @@ export function AdminHeader() {
   const { data: session } = useSession()
   const { toggleSidebar } = useSidebar()
 
+  const handleSignOut = async (): Promise<void> => {
+    await signOut({ redirect: false })
+    window.location.assign("/")
+  }
+
   return (
     <header className="bg-card border-b px-6 py-4">
       <div className="flex items-center justify-between">
@@ -80,7 +85,9 @@ export function AdminHeader() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-red-600"
-                onClick={() => signOut()}
+                onClick={() => {
+                  void handleSignOut()
+                }}
               >
                 Sign out
               </DropdownMenuItem>

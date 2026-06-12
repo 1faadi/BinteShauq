@@ -37,7 +37,8 @@ export function MainSidebar({ sections }: MainSidebarProps): React.ReactElement 
   const { data: session } = useSession()
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/" })
+    await signOut({ redirect: false })
+    window.location.assign("/")
   }
 
   // Generate a slug from section title for the URL
