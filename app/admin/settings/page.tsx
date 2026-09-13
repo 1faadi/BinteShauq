@@ -43,6 +43,16 @@ type AdminSettingsForm = {
   storeEmail: string
   storePhone: string
   storeAddress: string
+  storeWhatsapp: string
+  storeInstagramUrl: string
+  announcementEnabled: boolean
+  announcementText: string
+  announcementLink: string
+  codAdvancePkr: number
+  codHighOrderThresholdPkr: number
+  codHighOrderPercent: number
+  exchangeWorkingDays: number
+  deliveryEstimateText: string
   maintenanceMode: boolean
   allowRegistration: boolean
   requireEmailVerification: boolean
@@ -77,6 +87,16 @@ const DEFAULT_ADMIN_SETTINGS: AdminSettingsForm = {
   storeEmail: "",
   storePhone: "",
   storeAddress: "",
+  storeWhatsapp: "",
+  storeInstagramUrl: "https://www.instagram.com/bint_e_shauq/",
+  announcementEnabled: false,
+  announcementText: "",
+  announcementLink: "",
+  codAdvancePkr: 1000,
+  codHighOrderThresholdPkr: 30000,
+  codHighOrderPercent: 50,
+  exchangeWorkingDays: 7,
+  deliveryEstimateText: "Nationwide delivery in approximately 4–5 working days",
   maintenanceMode: false,
   allowRegistration: true,
   requireEmailVerification: false,
@@ -85,8 +105,9 @@ const DEFAULT_ADMIN_SETTINGS: AdminSettingsForm = {
   deliveryChargePkr: 300,
   currency: "PKR",
   timezone: "Asia/Karachi",
-  heroLine1: "Premium Women's Wear",
-  heroLine2: "Karandi Shawls",
+  heroLine1: "Premium Pakistani Women's Clothing",
+  heroLine2:
+    "Discover thoughtfully designed embroidered suits, kurtas and seasonal collections.",
   heroFontFamily1: "geist",
   heroFontFamily2: "georgia",
   heroFontSize1: "6xl",
@@ -94,9 +115,9 @@ const DEFAULT_ADMIN_SETTINGS: AdminSettingsForm = {
   heroFontWeight1: "bold",
   heroFontWeight2: "semibold",
   heroImageUrl: "",
-  heroButtonText: "Shop Now",
-  heroButtonHref: "/shop",
-  homeAboutTitle: "About Our Collection",
+  heroButtonText: "Shop New Arrivals",
+  heroButtonHref: "/new-arrivals",
+  homeAboutTitle: "Stitching Stories of Grace",
   homeAboutParagraph1:
     "Our karandi shawls are crafted with the finest materials and traditional techniques, bringing together timeless elegance and modern comfort. Each piece is carefully selected to ensure the highest quality and authentic craftsmanship.",
   homeAboutParagraph2:
@@ -163,6 +184,35 @@ export default function AdminSettings() {
             typeof row.deliveryChargePkr === "number" && !Number.isNaN(row.deliveryChargePkr)
               ? Math.max(0, Math.floor(row.deliveryChargePkr))
               : prev.deliveryChargePkr,
+          storeWhatsapp:
+            typeof row.storeWhatsapp === "string" ? row.storeWhatsapp : prev.storeWhatsapp,
+          storeInstagramUrl:
+            typeof row.storeInstagramUrl === "string"
+              ? row.storeInstagramUrl
+              : prev.storeInstagramUrl,
+          announcementEnabled: !!row.announcementEnabled,
+          announcementText:
+            typeof row.announcementText === "string" ? row.announcementText : prev.announcementText,
+          announcementLink:
+            typeof row.announcementLink === "string" ? row.announcementLink : prev.announcementLink,
+          codAdvancePkr:
+            typeof row.codAdvancePkr === "number" ? row.codAdvancePkr : prev.codAdvancePkr,
+          codHighOrderThresholdPkr:
+            typeof row.codHighOrderThresholdPkr === "number"
+              ? row.codHighOrderThresholdPkr
+              : prev.codHighOrderThresholdPkr,
+          codHighOrderPercent:
+            typeof row.codHighOrderPercent === "number"
+              ? row.codHighOrderPercent
+              : prev.codHighOrderPercent,
+          exchangeWorkingDays:
+            typeof row.exchangeWorkingDays === "number"
+              ? row.exchangeWorkingDays
+              : prev.exchangeWorkingDays,
+          deliveryEstimateText:
+            typeof row.deliveryEstimateText === "string"
+              ? row.deliveryEstimateText
+              : prev.deliveryEstimateText,
         }))
       } catch {
         // noop
@@ -651,6 +701,129 @@ export default function AdminSettings() {
                 value={settings.storeAddress}
                 onChange={(e) => handleInputChange("storeAddress", e.target.value)}
                 rows={2}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="storeWhatsapp">WhatsApp number</Label>
+              <Input
+                id="storeWhatsapp"
+                value={settings.storeWhatsapp}
+                onChange={(e) => handleInputChange("storeWhatsapp", e.target.value)}
+                placeholder="923711538953"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="storeInstagramUrl">Instagram URL</Label>
+              <Input
+                id="storeInstagramUrl"
+                value={settings.storeInstagramUrl}
+                onChange={(e) => handleInputChange("storeInstagramUrl", e.target.value)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Announcement &amp; commerce policy</CardTitle>
+            <CardDescription>
+              Storefront announcement bar and COD/exchange disclosure amounts
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="announcementEnabled">Show announcement bar</Label>
+              <Switch
+                id="announcementEnabled"
+                checked={settings.announcementEnabled}
+                onCheckedChange={(v) => handleInputChange("announcementEnabled", v)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="announcementText">Announcement text</Label>
+              <Input
+                id="announcementText"
+                value={settings.announcementText}
+                onChange={(e) => handleInputChange("announcementText", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="announcementLink">Announcement link (optional)</Label>
+              <Input
+                id="announcementLink"
+                value={settings.announcementLink}
+                onChange={(e) => handleInputChange("announcementLink", e.target.value)}
+                placeholder="/shop"
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="codAdvancePkr">COD advance (PKR)</Label>
+                <Input
+                  id="codAdvancePkr"
+                  type="number"
+                  min={0}
+                  value={settings.codAdvancePkr}
+                  onChange={(e) =>
+                    handleInputChange("codAdvancePkr", Math.max(0, Number(e.target.value) || 0))
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="codHighOrderThresholdPkr">High-order threshold (PKR)</Label>
+                <Input
+                  id="codHighOrderThresholdPkr"
+                  type="number"
+                  min={0}
+                  value={settings.codHighOrderThresholdPkr}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "codHighOrderThresholdPkr",
+                      Math.max(0, Number(e.target.value) || 0)
+                    )
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="codHighOrderPercent">High-order advance %</Label>
+                <Input
+                  id="codHighOrderPercent"
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={settings.codHighOrderPercent}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "codHighOrderPercent",
+                      Math.min(100, Math.max(0, Number(e.target.value) || 0))
+                    )
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="exchangeWorkingDays">Exchange window (working days)</Label>
+                <Input
+                  id="exchangeWorkingDays"
+                  type="number"
+                  min={1}
+                  value={settings.exchangeWorkingDays}
+                  onChange={(e) =>
+                    handleInputChange(
+                      "exchangeWorkingDays",
+                      Math.max(1, Number(e.target.value) || 1)
+                    )
+                  }
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="deliveryEstimateText">Delivery estimate copy</Label>
+              <Input
+                id="deliveryEstimateText"
+                value={settings.deliveryEstimateText}
+                onChange={(e) => handleInputChange("deliveryEstimateText", e.target.value)}
               />
             </div>
           </CardContent>

@@ -1,32 +1,40 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { cartWhere, resolveCartOwner } from "@/lib/cart-owner"
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ productId: string }> }
-) {
+): Promise<NextResponse> {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const owner = await resolveCartOwner(false)
+    if (!owner) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { productId } = await params
-    const { quantity } = await request.json()
+    const body: unknown = await request.json()
+    const quantity =
+      typeof body === "object" &&
+      body !== null &&
+      "quantity" in body &&
+      typeof (body as { quantity: unknown }).quantity === "number"
+        ? (body as { quantity: number }).quantity
+        : 0
 
-    if (quantity <= 0) {
+    if (!Number.isInteger(quantity) || quantity <= 0) {
       return NextResponse.json({ error: "Quantity must be greater than 0" }, { status: 400 })
     }
 
+    const existing = await prisma.cartItem.findFirst({
+      where: { ...cartWhere(owner), productId },
+    })
+    if (!existing) {
+      return NextResponse.json({ error: "Cart item not found" }, { status: 404 })
+    }
+
     const updatedItem = await prisma.cartItem.update({
-      where: {
-        userId_productId: {
-          userId: session.user.id,
-          productId,
-        },
-      },
+      where: { id: existing.id },
       data: { quantity },
     })
 
@@ -38,24 +46,18 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ productId: string }> }
-) {
+): Promise<NextResponse> {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const owner = await resolveCartOwner(false)
+    if (!owner) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { productId } = await params
-
-    await prisma.cartItem.delete({
-      where: {
-        userId_productId: {
-          userId: session.user.id,
-          productId,
-        },
-      },
+    await prisma.cartItem.deleteMany({
+      where: { ...cartWhere(owner), productId },
     })
 
     return NextResponse.json({ message: "Item removed from cart" })

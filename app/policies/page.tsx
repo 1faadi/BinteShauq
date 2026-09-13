@@ -1,4 +1,16 @@
+import type { Metadata } from "next"
 import { Card } from "@/components/ui/card"
+import { buildPageMetadata } from "@/lib/seo/metadata"
+import { BRAND_NAME } from "@/lib/site"
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata({
+    title: `Policies | ${BRAND_NAME}`,
+    description:
+      "Shipping, exchange, COD advance, and payment policies for Bint-e-Shauq orders across Pakistan.",
+    path: "/policies",
+  })
+}
 
 export default function PoliciesPage() {
   return (

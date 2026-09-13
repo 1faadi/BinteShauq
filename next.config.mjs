@@ -7,11 +7,25 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+    ],
+    formats: ["image/avif", "image/webp"],
   },
-  // Move serverComponentsExternalPackages to the correct location
-  serverExternalPackages: ['@prisma/client', 'pdfkit'],
-  // Remove api config as it's not valid in Next.js 15
+  async redirects() {
+    return [
+      {
+        source: "/sidebar/:slug",
+        destination: "/collections/:slug",
+        permanent: true,
+      },
+    ]
+  },
+  serverExternalPackages: ["@prisma/client", "pdfkit"],
 }
 
 export default nextConfig

@@ -1,30 +1,33 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { cartWhere, resolveCartOwner } from "@/lib/cart-owner"
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+): Promise<NextResponse> {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const owner = await resolveCartOwner(false)
+    if (!owner) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { id } = await params
-    const { quantity } = await request.json()
+    const body: unknown = await request.json()
+    const quantity =
+      typeof body === "object" &&
+      body !== null &&
+      "quantity" in body &&
+      typeof (body as { quantity: unknown }).quantity === "number"
+        ? (body as { quantity: number }).quantity
+        : 0
 
-    if (quantity <= 0) {
+    if (!Number.isInteger(quantity) || quantity <= 0) {
       return NextResponse.json({ error: "Quantity must be greater than 0" }, { status: 400 })
     }
 
     const updatedItem = await prisma.cartItem.updateMany({
-      where: {
-        id,
-        userId: session.user.id,
-      },
+      where: { id, ...cartWhere(owner) },
       data: { quantity },
     })
 
@@ -45,22 +48,18 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+): Promise<NextResponse> {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const owner = await resolveCartOwner(false)
+    if (!owner) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { id } = await params
-
     const deleted = await prisma.cartItem.deleteMany({
-      where: {
-        id,
-        userId: session.user.id,
-      },
+      where: { id, ...cartWhere(owner) },
     })
 
     if (deleted.count === 0) {

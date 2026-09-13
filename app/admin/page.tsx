@@ -30,6 +30,7 @@ import {
   Plus,
 } from "lucide-react"
 import Link from "next/link"
+import { getOrderCustomer } from "@/lib/order-customer"
 
 interface DashboardStats {
   totalUsers: number
@@ -270,12 +271,18 @@ export default function AdminDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {stats.recentOrders.map((order) => (
+            {stats.recentOrders.map((order) => {
+              const customer = getOrderCustomer(order)
+              return (
               <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center space-x-4">
                   <div>
                     <p className="font-medium">Order #{order.id.slice(-8)}</p>
-                    <p className="text-sm text-muted-foreground">{order.user.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {customer.isGuest && customer.email
+                        ? `${customer.name} (${customer.email})`
+                        : customer.name}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
@@ -290,7 +297,8 @@ export default function AdminDashboard() {
                   </Button>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         </CardContent>
       </Card>

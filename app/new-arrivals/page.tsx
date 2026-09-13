@@ -1,17 +1,15 @@
 import { ProductCard } from "@/components/product-card"
 import { getProductImages, getProductImage, getProducts } from "@/lib/data"
+import type { Product } from "@/lib/data"
 
-// Make this page dynamic to avoid large static generation
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 
-export default async function NewArrivalsPage() {
-  let items: any[] = []
-  
+export default async function NewArrivalsPage(): Promise<React.ReactElement> {
+  let items: Product[] = []
+
   try {
-    // Use optimized getProducts function with caching
-    items = await getProducts(undefined, undefined, undefined)
-    // Filter for new arrivals
-    items = items.filter(item => item.isNewArrival)
+    const result = await getProducts({ sort: "newest", availability: "in-stock" })
+    items = result.items.filter((item) => item.isNewArrival)
   } catch (error) {
     console.error("Error fetching new arrivals:", error)
     items = []
@@ -21,7 +19,7 @@ export default async function NewArrivalsPage() {
     <div className="mx-auto max-w-6xl px-4 py-16">
       <h1 className="caps text-xl mb-6">New Arrivals</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
-        {Array.isArray(items) && items.map((p: any) => (
+        {items.map((p) => (
           <ProductCard
             key={p.id}
             id={p.id}

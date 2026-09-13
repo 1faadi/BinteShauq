@@ -22,10 +22,12 @@ import {
   Mail,
   FileText,
   Printer,
+  Trash2,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { toast } from "sonner"
+import { getOrderCustomer } from "@/lib/order-customer"
 
 interface OrderDetail {
   id: string
@@ -37,6 +39,7 @@ interface OrderDetail {
   billingAddress?: string
   phone?: string
   notes?: string
+  guestEmail?: string | null
   createdAt: string
   updatedAt: string
   user: {
@@ -49,7 +52,7 @@ interface OrderDetail {
     state?: string
     zipCode?: string
     country?: string
-  }
+  } | null
   items: Array<{
     id: string
     quantity: number
@@ -160,6 +163,35 @@ export default function AdminOrderDetailPage() {
     }
   }
 
+  const handleDeleteOrder = async (): Promise<void> => {
+    if (!order) return
+    if (
+      !confirm(
+        `Delete order #${order.id.slice(-8)} permanently? This cannot be undone.`
+      )
+    ) {
+      return
+    }
+
+    setUpdating(true)
+    try {
+      const response = await fetch(`/api/admin/orders/${order.id}`, {
+        method: "DELETE",
+      })
+      if (response.ok) {
+        toast.success("Order deleted")
+        router.push("/admin/orders")
+      } else {
+        toast.error("Failed to delete order")
+      }
+    } catch (error) {
+      console.error("Failed to delete order:", error)
+      toast.error("Failed to delete order")
+    } finally {
+      setUpdating(false)
+    }
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PENDING":
@@ -216,6 +248,8 @@ export default function AdminOrderDetailPage() {
     )
   }
 
+  const customer = getOrderCustomer(order)
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -246,6 +280,17 @@ export default function AdminOrderDetailPage() {
               <Package className="h-4 w-4 mr-2" />
               Customer View
             </Link>
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={updating}
+            onClick={() => {
+              void handleDeleteOrder()
+            }}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
           </Button>
         </div>
       </div>
@@ -441,26 +486,31 @@ export default function AdminOrderDetailPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <p className="font-medium">{order.user.name}</p>
+                <p className="font-medium">{customer.name}</p>
+                {customer.isGuest && (
+                  <p className="text-xs text-muted-foreground">Guest checkout</p>
+                )}
               </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <a
-                  href={`mailto:${order.user.email}`}
-                  className="text-primary hover:underline"
-                >
-                  {order.user.email}
-                </a>
-              </div>
-              {order.user.phone && (
+              {customer.email && (
                 <div className="flex items-center gap-2 text-sm">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <a href={`tel:${order.user.phone}`} className="hover:underline">
-                    {order.user.phone}
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <a
+                    href={`mailto:${customer.email}`}
+                    className="text-primary hover:underline"
+                  >
+                    {customer.email}
                   </a>
                 </div>
               )}
-              {order.user.address && (
+              {(order.phone || order.user?.phone) && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <a href={`tel:${order.phone || order.user?.phone}`} className="hover:underline">
+                    {order.phone || order.user?.phone}
+                  </a>
+                </div>
+              )}
+              {order.user?.address && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">
                     Customer Address
@@ -474,11 +524,13 @@ export default function AdminOrderDetailPage() {
                   </p>
                 </div>
               )}
-              <Button variant="outline" size="sm" className="w-full" asChild>
-                <Link href={`/admin/users/${order.user.id}`}>
-                  View Customer Profile
-                </Link>
-              </Button>
+              {order.user && (
+                <Button variant="outline" size="sm" className="w-full" asChild>
+                  <Link href={`/admin/users/${order.user.id}`}>
+                    View Customer Profile
+                  </Link>
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>

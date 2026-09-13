@@ -33,13 +33,11 @@ import {
   MoreHorizontal,
   Eye,
   Package,
-  User,
-  Calendar,
-  MapPin,
-  Phone,
+  Trash2,
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { getOrderCustomer } from "@/lib/order-customer"
 
 interface Order {
   id: string
@@ -50,13 +48,14 @@ interface Order {
   shippingAddress: string
   phone?: string
   notes?: string
+  guestEmail?: string | null
   createdAt: string
   updatedAt: string
   user: {
     id: string
     name: string
     email: string
-  }
+  } | null
   items: Array<{
     id: string
     quantity: number
@@ -132,6 +131,39 @@ export default function AdminOrders() {
     }
   }
 
+  const handleDeleteOrder = async (orderId: string): Promise<void> => {
+    if (
+      !confirm(
+        "Delete this order permanently? This cannot be undone."
+      )
+    ) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
+        method: "DELETE",
+      })
+      if (response.ok) {
+        toast.success("Order deleted")
+        setOrders((prev) => prev.filter((o) => o.id !== orderId))
+      } else {
+        const data: unknown = await response.json().catch(() => null)
+        const msg =
+          typeof data === "object" &&
+          data !== null &&
+          "error" in data &&
+          typeof (data as { error: unknown }).error === "string"
+            ? (data as { error: string }).error
+            : "Failed to delete order"
+        toast.error(msg)
+      }
+    } catch (error) {
+      console.error("Failed to delete order:", error)
+      toast.error("Failed to delete order")
+    }
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PENDING":
@@ -167,10 +199,12 @@ export default function AdminOrders() {
   }
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = 
-      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const customer = getOrderCustomer(order)
+    const term = searchTerm.toLowerCase()
+    const matchesSearch =
+      order.id.toLowerCase().includes(term) ||
+      customer.name.toLowerCase().includes(term) ||
+      customer.email.toLowerCase().includes(term)
     
     const matchesStatus = statusFilter === "ALL" || order.status === statusFilter
     
@@ -254,7 +288,9 @@ export default function AdminOrders() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredOrders.map((order) => (
+              {filteredOrders.map((order) => {
+                const customer = getOrderCustomer(order)
+                return (
                 <TableRow key={order.id}>
                   <TableCell>
                     <div>
@@ -266,8 +302,8 @@ export default function AdminOrders() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{order.user.name}</p>
-                      <p className="text-sm text-muted-foreground">{order.user.email}</p>
+                      <p className="font-medium">{customer.name}</p>
+                      <p className="text-sm text-muted-foreground">{customer.email}</p>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -331,11 +367,22 @@ export default function AdminOrders() {
                             Customer View
                           </Link>
                         </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => {
+                            void handleDeleteOrder(order.id)
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Order
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))}
+                )
+              })}
             </TableBody>
           </Table>
         </CardContent>

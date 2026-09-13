@@ -32,6 +32,22 @@ export async function PUT(request: NextRequest) {
       storeEmail: body.storeEmail,
       storePhone: body.storePhone,
       storeAddress: body.storeAddress,
+      storeWhatsapp: body.storeWhatsapp,
+      storeInstagramUrl: body.storeInstagramUrl,
+      announcementEnabled: !!body.announcementEnabled,
+      announcementText: body.announcementText,
+      announcementLink: body.announcementLink,
+      codAdvancePkr: Math.max(0, Math.floor(Number(body.codAdvancePkr ?? 1000))),
+      codHighOrderThresholdPkr: Math.max(
+        0,
+        Math.floor(Number(body.codHighOrderThresholdPkr ?? 30000))
+      ),
+      codHighOrderPercent: Math.min(
+        100,
+        Math.max(0, Math.floor(Number(body.codHighOrderPercent ?? 50)))
+      ),
+      exchangeWorkingDays: Math.max(1, Math.floor(Number(body.exchangeWorkingDays ?? 7))),
+      deliveryEstimateText: body.deliveryEstimateText,
       maintenanceMode: !!body.maintenanceMode,
       allowRegistration: !!body.allowRegistration,
       requireEmailVerification: !!body.requireEmailVerification,
@@ -65,8 +81,16 @@ export async function PUT(request: NextRequest) {
     if (body.homeAboutImageAlt !== undefined) data.homeAboutImageAlt = body.homeAboutImageAlt
 
     const settings = existing
-      ? await prisma.storeSettings.update({ where: { id: existing.id }, data })
-      : await prisma.storeSettings.create({ data })
+      ? await prisma.storeSettings.update({
+          where: { id: existing.id },
+          data: data as Parameters<typeof prisma.storeSettings.update>[0]["data"],
+        })
+      : await prisma.storeSettings.create({
+          data: {
+            storeName: String(body.storeName ?? "Bint-e-Shauq"),
+            ...data,
+          } as Parameters<typeof prisma.storeSettings.create>[0]["data"],
+        })
 
     return NextResponse.json(settings)
   } catch (e) {

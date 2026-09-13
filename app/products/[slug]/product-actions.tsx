@@ -4,9 +4,13 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/lib/cart-context"
 import { Button } from "@/components/ui/button"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { ShoppingCart, CreditCard, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { isSizeSoldOut } from "@/lib/inventory"
+import { ProductPriceDisplay } from "@/components/product-price-display"
 
 interface ProductActionsProps {
   product: {
@@ -20,67 +24,72 @@ interface ProductActionsProps {
     sizeSSoldOut?: boolean
     sizeMSoldOut?: boolean
     sizeLSoldOut?: boolean
+    sizeSStock?: number
+    sizeMStock?: number
+    sizeLStock?: number
   }
 }
 
 const SIZES = ["S", "M", "L"] as const
+type SizeKey = (typeof SIZES)[number]
 
-export function ProductActions({ product }: ProductActionsProps) {
+export function ProductActions({ product }: ProductActionsProps): React.ReactElement {
   const { addToCart, isLoading: cartLoading } = useCart()
   const router = useRouter()
   const [isBuying, setIsBuying] = useState(false)
-  const [selectedSize, setSelectedSize] = useState<string | null>(null)
+  const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined)
+  const [sizeError, setSizeError] = useState("")
 
   const needsSizes = product.requiresSizes !== false
-  const sizeSoldOut = {
-    S: product.sizeSSoldOut ?? false,
-    M: product.sizeMSoldOut ?? false,
-    L: product.sizeLSoldOut ?? false,
+  const sizeSoldOut: Record<SizeKey, boolean> = {
+    S: isSizeSoldOut(product, "S"),
+    M: isSizeSoldOut(product, "M"),
+    L: isSizeSoldOut(product, "L"),
   }
   const hasAvailableSize = needsSizes
-    ? Object.values(sizeSoldOut).some((s) => !s)
+    ? SIZES.some((s) => !sizeSoldOut[s])
     : true
-  const canAddToCart =
-    product.inStock &&
-    hasAvailableSize &&
-    (!needsSizes || (selectedSize !== null && !sizeSoldOut[selectedSize as keyof typeof sizeSoldOut]))
+  const selectedIsSoldOut =
+    selectedSize !== undefined &&
+    SIZES.includes(selectedSize as SizeKey) &&
+    sizeSoldOut[selectedSize as SizeKey]
 
-  const handleAddToCart = async () => {
-    if (!canAddToCart) {
-      if (needsSizes && selectedSize === null) {
-        toast.error("Please select a size")
-        return
-      }
-      if (
-        needsSizes &&
-        selectedSize !== null &&
-        sizeSoldOut[selectedSize as keyof typeof sizeSoldOut]
-      ) {
-        toast.error("This size is sold out")
-        return
-      }
+  const validateSize = (): boolean => {
+    if (!needsSizes) return true
+    if (selectedSize === undefined) {
+      setSizeError("Please select a size")
+      return false
+    }
+    if (selectedIsSoldOut) {
+      setSizeError("This size is sold out")
+      return false
+    }
+    setSizeError("")
+    return true
+  }
+
+  const handleAddToCart = async (): Promise<void> => {
+    if (!product.inStock || !hasAvailableSize) {
       toast.error("This product is out of stock")
       return
     }
+    if (!validateSize()) return
 
     await addToCart({
       id: product.id,
       name: product.name,
       price: product.price,
       image: product.image,
-      size: needsSizes ? selectedSize ?? undefined : undefined,
+      size: needsSizes ? selectedSize : undefined,
     })
   }
 
-  const handleBuyNow = async () => {
-    if (!canAddToCart) {
-      if (needsSizes && selectedSize === null) {
-        toast.error("Please select a size")
-        return
-      }
+  const handleBuyNow = async (): Promise<void> => {
+    if (!product.inStock || !hasAvailableSize) {
       toast.error("This product is unavailable")
       return
     }
+    if (!validateSize()) return
 
     setIsBuying(true)
     try {
@@ -89,10 +98,10 @@ export function ProductActions({ product }: ProductActionsProps) {
         name: product.name,
         price: product.price,
         image: product.image,
-        size: needsSizes ? selectedSize ?? undefined : undefined,
+        size: needsSizes ? selectedSize : undefined,
       })
       router.push("/checkout")
-    } catch (_error) {
+    } catch {
       toast.error("Failed to proceed to checkout")
     } finally {
       setIsBuying(false)
@@ -113,44 +122,71 @@ export function ProductActions({ product }: ProductActionsProps) {
     )
   }
 
-  return (
-    <div className="space-y-3">
-      {needsSizes && (
-        <div className="space-y-2">
-          <p className="text-sm font-medium">Size</p>
-          <div className="flex gap-2">
-            {SIZES.map((size) => {
-              const soldOut = sizeSoldOut[size]
-              return (
-                <div key={size} className="flex flex-col items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => !soldOut && setSelectedSize(size)}
-                    className={cn(
-                      "flex h-10 w-10 items-center justify-center rounded-md border text-sm font-medium transition-colors",
-                      soldOut
-                        ? "cursor-not-allowed border-dashed border-muted bg-muted/50 text-muted-foreground opacity-60"
-                        : selectedSize === size
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-input hover:border-primary hover:bg-accent"
-                    )}
-                  >
-                    {size}
-                  </button>
-                  {soldOut && (
-                    <span className="text-[10px] text-destructive">Sold Out</span>
+  const sizePicker =
+    needsSizes ? (
+      <div className="space-y-2">
+        <p className="text-sm font-medium" id="size-label">
+          Size
+        </p>
+        <RadioGroup
+          value={selectedSize}
+          onValueChange={(value) => {
+            setSelectedSize(value)
+            setSizeError("")
+          }}
+          className="flex flex-row gap-2"
+          aria-labelledby="size-label"
+          aria-invalid={sizeError ? true : undefined}
+          aria-describedby={sizeError ? "size-error" : undefined}
+        >
+          {SIZES.map((size) => {
+            const soldOut = sizeSoldOut[size]
+            return (
+              <div key={size} className="flex flex-col items-center gap-1">
+                <Label
+                  htmlFor={`size-${size}`}
+                  className={cn(
+                    "flex h-10 w-10 cursor-pointer items-center justify-center rounded-md border text-sm font-medium transition-colors",
+                    soldOut &&
+                      "cursor-not-allowed border-dashed border-muted bg-muted/50 text-muted-foreground opacity-60",
+                    !soldOut &&
+                      selectedSize === size &&
+                      "border-primary bg-primary text-primary-foreground",
+                    !soldOut &&
+                      selectedSize !== size &&
+                      "border-input hover:border-primary hover:bg-accent"
                   )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
+                >
+                  <RadioGroupItem
+                    id={`size-${size}`}
+                    value={size}
+                    disabled={soldOut}
+                    className="sr-only"
+                  />
+                  {size}
+                </Label>
+                {soldOut ? (
+                  <span className="text-[10px] text-destructive">Sold Out</span>
+                ) : null}
+              </div>
+            )
+          })}
+        </RadioGroup>
+        {sizeError ? (
+          <p id="size-error" className="text-sm text-destructive" role="alert">
+            {sizeError}
+          </p>
+        ) : null}
+      </div>
+    ) : null
+
+  const actionButtons = (
+    <>
       <Button
         size="lg"
         className="w-full"
-        onClick={handleAddToCart}
-        disabled={cartLoading || !canAddToCart}
+        onClick={() => void handleAddToCart()}
+        disabled={cartLoading}
       >
         {cartLoading ? (
           <>
@@ -164,13 +200,13 @@ export function ProductActions({ product }: ProductActionsProps) {
           </>
         )}
       </Button>
-      
+
       <Button
         size="lg"
         variant="outline"
         className="w-full"
-        onClick={handleBuyNow}
-        disabled={cartLoading || isBuying || !canAddToCart}
+        onClick={() => void handleBuyNow()}
+        disabled={cartLoading || isBuying}
       >
         {isBuying ? (
           <>
@@ -184,11 +220,43 @@ export function ProductActions({ product }: ProductActionsProps) {
           </>
         )}
       </Button>
-      
-      <p className="text-xs text-muted-foreground text-center">
-        Fastest Shipping
-      </p>
-    </div>
+    </>
+  )
+
+  return (
+    <>
+      <div className="space-y-3">
+        {sizePicker}
+        {actionButtons}
+        <p className="text-xs text-muted-foreground text-center">
+          Nationwide delivery · Exchange within policy window
+        </p>
+      </div>
+
+      {/* Sticky mobile ATC */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-3 backdrop-blur md:hidden">
+        <div className="mx-auto flex max-w-6xl items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium">{product.name}</p>
+            <ProductPriceDisplay price={product.price} size="sm" />
+          </div>
+          <Button
+            size="lg"
+            className="shrink-0"
+            onClick={() => void handleAddToCart()}
+            disabled={cartLoading}
+          >
+            {cartLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                Add
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    </>
   )
 }
-

@@ -110,7 +110,7 @@ export function MainSidebar({ sections }: MainSidebarProps): React.ReactElement 
                   {sections.map((section) => (
                     <SidebarMenuItem key={section.id}>
                       <SidebarMenuButton asChild className={sidebarNavLinkClass}>
-                        <Link href={`/sidebar/${getSectionSlug(section.title)}?id=${section.id}`}>
+                        <Link href={`/collections/${getSectionSlug(section.title)}`}>
                           <span>{section.title}</span>
                         </Link>
                       </SidebarMenuButton>

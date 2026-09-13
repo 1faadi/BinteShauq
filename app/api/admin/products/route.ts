@@ -9,6 +9,7 @@ import {
   nullableTrimmedString,
   parseDupattaShawlKind,
 } from "@/lib/product-field-utils"
+import { parseNonNegativeInt, soldOutFlagsFromStock } from "@/lib/inventory"
 import { v2 as cloudinary } from 'cloudinary'
 
 cloudinary.config({
@@ -75,13 +76,23 @@ export async function POST(request: NextRequest) {
       isFeatured,
       isNewArrival,
       requiresSizes,
-      sizeSSoldOut,
-      sizeMSoldOut,
-      sizeLSoldOut,
+      sizeSStock,
+      sizeMStock,
+      sizeLStock,
       sidebarSections // Array of sidebar section IDs
     } = body
 
     const slug = await allocateUniqueProductSlug(prisma, name)
+
+    const stockS = parseNonNegativeInt(sizeSStock, 0)
+    const stockM = parseNonNegativeInt(sizeMStock, 0)
+    const stockL = parseNonNegativeInt(sizeLStock, 0)
+    const soldFlags = soldOutFlagsFromStock({
+      sizeSStock: stockS,
+      sizeMStock: stockM,
+      sizeLStock: stockL,
+    })
+    const requires = requiresSizes !== undefined ? !!requiresSizes : true
 
     const product = await prisma.product.create({
       data: {
@@ -92,7 +103,7 @@ export async function POST(request: NextRequest) {
         compareAtPrice: parseCompareAtPriceInput(compareAtPrice),
         collection,
         images: Array.isArray(images) ? images : [],
-        inStock: inStock ?? true,
+        inStock: requires ? !soldFlags.allSizesSoldOut : (inStock ?? true),
         // Additional fields
         articleName,
         color,
@@ -111,10 +122,13 @@ export async function POST(request: NextRequest) {
             : String(washNote).trim(),
         isFeatured: !!isFeatured,
         isNewArrival: !!isNewArrival,
-        requiresSizes: requiresSizes !== undefined ? !!requiresSizes : true,
-        sizeSSoldOut: !!sizeSSoldOut,
-        sizeMSoldOut: !!sizeMSoldOut,
-        sizeLSoldOut: !!sizeLSoldOut,
+        requiresSizes: requires,
+        sizeSStock: stockS,
+        sizeMStock: stockM,
+        sizeLStock: stockL,
+        sizeSSoldOut: soldFlags.sizeSSoldOut,
+        sizeMSoldOut: soldFlags.sizeMSoldOut,
+        sizeLSoldOut: soldFlags.sizeLSoldOut,
       },
     })
 

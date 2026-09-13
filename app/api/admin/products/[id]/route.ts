@@ -9,6 +9,7 @@ import {
   nullableTrimmedString,
   parseDupattaShawlKind,
 } from "@/lib/product-field-utils"
+import { parseNonNegativeInt, soldOutFlagsFromStock } from "@/lib/inventory"
 
 export async function GET(
   request: NextRequest,
@@ -80,9 +81,9 @@ export async function PUT(
       isFeatured,
       isNewArrival,
       requiresSizes,
-      sizeSSoldOut,
-      sizeMSoldOut,
-      sizeLSoldOut,
+      sizeSStock,
+      sizeMStock,
+      sizeLStock,
       imageData,
       uploadedImagesCount,
       sidebarSections // Array of sidebar section IDs
@@ -93,7 +94,7 @@ export async function PUT(
       slug = await allocateUniqueProductSlug(prisma, name, id)
     }
 
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     if (name) updateData.name = name
     if (slug !== undefined) updateData.slug = slug
     if (description) updateData.description = description
@@ -132,9 +133,40 @@ export async function PUT(
     if (isFeatured !== undefined) updateData.isFeatured = !!isFeatured
     if (isNewArrival !== undefined) updateData.isNewArrival = !!isNewArrival
     if (typeof requiresSizes === "boolean") updateData.requiresSizes = requiresSizes
-    if (typeof sizeSSoldOut === "boolean") updateData.sizeSSoldOut = sizeSSoldOut
-    if (typeof sizeMSoldOut === "boolean") updateData.sizeMSoldOut = sizeMSoldOut
-    if (typeof sizeLSoldOut === "boolean") updateData.sizeLSoldOut = sizeLSoldOut
+
+    const stockProvided =
+      sizeSStock !== undefined || sizeMStock !== undefined || sizeLStock !== undefined
+    if (stockProvided) {
+      const stockS = parseNonNegativeInt(
+        sizeSStock !== undefined ? sizeSStock : existing.sizeSStock,
+        0
+      )
+      const stockM = parseNonNegativeInt(
+        sizeMStock !== undefined ? sizeMStock : existing.sizeMStock,
+        0
+      )
+      const stockL = parseNonNegativeInt(
+        sizeLStock !== undefined ? sizeLStock : existing.sizeLStock,
+        0
+      )
+      const soldFlags = soldOutFlagsFromStock({
+        sizeSStock: stockS,
+        sizeMStock: stockM,
+        sizeLStock: stockL,
+      })
+      updateData.sizeSStock = stockS
+      updateData.sizeMStock = stockM
+      updateData.sizeLStock = stockL
+      updateData.sizeSSoldOut = soldFlags.sizeSSoldOut
+      updateData.sizeMSoldOut = soldFlags.sizeMSoldOut
+      updateData.sizeLSoldOut = soldFlags.sizeLSoldOut
+      const requires =
+        typeof requiresSizes === "boolean" ? requiresSizes : existing.requiresSizes
+      if (requires) {
+        updateData.inStock = !soldFlags.allSizesSoldOut
+      }
+    }
+
     if (imageData !== undefined) {
       updateData.imageData = imageData
       // Try to mirror imageData array into images[] for easier querying

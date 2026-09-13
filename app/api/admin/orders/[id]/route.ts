@@ -110,3 +110,30 @@ export async function PATCH(
     )
   }
 }
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session || session.user?.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { id } = await params
+    const existing = await prisma.order.findUnique({ where: { id } })
+    if (!existing) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 })
+    }
+
+    await prisma.order.delete({ where: { id } })
+    return NextResponse.json({ success: true, message: "Order deleted" })
+  } catch (error) {
+    console.error("Delete order error:", error)
+    return NextResponse.json(
+      { error: "Failed to delete order" },
+      { status: 500 }
+    )
+  }
+}

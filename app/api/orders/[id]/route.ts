@@ -6,19 +6,23 @@ import { prisma } from "@/lib/prisma"
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    const { id } = await params
+    const guestEmail = request.nextUrl.searchParams.get("email")?.trim().toLowerCase()
+
+    if (!session?.user?.id && !guestEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-
-    const { id } = await params
 
     const order = await prisma.order.findFirst({
       where: {
         id,
-        userId: session.user.id, // Ensure user can only access their own orders
+        OR: [
+          ...(session?.user?.id ? [{ userId: session.user.id }] : []),
+          ...(guestEmail ? [{ guestEmail }] : []),
+        ],
       },
       include: {
         items: {

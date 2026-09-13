@@ -1,5 +1,17 @@
 import Image from "next/image"
+import type { Metadata } from "next"
 import { Card } from "@/components/ui/card"
+import { buildPageMetadata } from "@/lib/seo/metadata"
+import { BRAND_NAME } from "@/lib/site"
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata({
+    title: `About | ${BRAND_NAME}`,
+    description:
+      "Bint-e-Shauq is founded by Sadia Ismail — premium Pakistani women's clothing crafted for grace, elegance, and everyday wear.",
+    path: "/about",
+  })
+}
 
 export default function AboutPage() {
   return (

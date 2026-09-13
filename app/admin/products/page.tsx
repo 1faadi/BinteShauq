@@ -88,6 +88,9 @@ interface Product {
   sizeSSoldOut?: boolean
   sizeMSoldOut?: boolean
   sizeLSoldOut?: boolean
+  sizeSStock?: number
+  sizeMStock?: number
+  sizeLStock?: number
   requiresSizes?: boolean
   isFeatured?: boolean
   isNewArrival?: boolean
@@ -418,9 +421,9 @@ function ProductForm({
     isFeatured: product?.isFeatured ?? false,
     isNewArrival: product?.isNewArrival ?? false,
     requiresSizes: product?.requiresSizes !== false,
-    sizeSSoldOut: product?.sizeSSoldOut ?? false,
-    sizeMSoldOut: product?.sizeMSoldOut ?? false,
-    sizeLSoldOut: product?.sizeLSoldOut ?? false,
+    sizeSStock: product?.sizeSStock ?? 0,
+    sizeMStock: product?.sizeMStock ?? 0,
+    sizeLStock: product?.sizeLStock ?? 0,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<File[]>([])
@@ -909,34 +912,68 @@ function ProductForm({
 
       {formData.requiresSizes && (
         <div className="space-y-3 rounded-lg border p-4">
-          <Label>Size availability — mark sold out</Label>
+          <Label>Size inventory (pieces remaining)</Label>
           <p className="text-sm text-muted-foreground">
-            When all three are sold out, the product shows as unavailable on the storefront.
+            Set how many pieces you have for each size. When stock reaches 0 after orders,
+            that size automatically shows as sold out on the storefront.
           </p>
-          <div className="flex flex-wrap gap-6">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="sizeSSoldOut"
-                checked={formData.sizeSSoldOut}
-                onCheckedChange={(checked) => setFormData({ ...formData, sizeSSoldOut: checked })}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-1">
+              <Label htmlFor="sizeSStock">Size S quantity</Label>
+              <Input
+                id="sizeSStock"
+                type="number"
+                min={0}
+                step={1}
+                value={formData.sizeSStock}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    sizeSStock: Math.max(0, Math.floor(Number(e.target.value) || 0)),
+                  })
+                }
               />
-              <Label htmlFor="sizeSSoldOut">Size S Sold Out</Label>
+              <p className="text-xs text-muted-foreground">
+                {formData.sizeSStock <= 0 ? "Sold out" : `${formData.sizeSStock} available`}
+              </p>
             </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="sizeMSoldOut"
-                checked={formData.sizeMSoldOut}
-                onCheckedChange={(checked) => setFormData({ ...formData, sizeMSoldOut: checked })}
+            <div className="space-y-1">
+              <Label htmlFor="sizeMStock">Size M quantity</Label>
+              <Input
+                id="sizeMStock"
+                type="number"
+                min={0}
+                step={1}
+                value={formData.sizeMStock}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    sizeMStock: Math.max(0, Math.floor(Number(e.target.value) || 0)),
+                  })
+                }
               />
-              <Label htmlFor="sizeMSoldOut">Size M Sold Out</Label>
+              <p className="text-xs text-muted-foreground">
+                {formData.sizeMStock <= 0 ? "Sold out" : `${formData.sizeMStock} available`}
+              </p>
             </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="sizeLSoldOut"
-                checked={formData.sizeLSoldOut}
-                onCheckedChange={(checked) => setFormData({ ...formData, sizeLSoldOut: checked })}
+            <div className="space-y-1">
+              <Label htmlFor="sizeLStock">Size L quantity</Label>
+              <Input
+                id="sizeLStock"
+                type="number"
+                min={0}
+                step={1}
+                value={formData.sizeLStock}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    sizeLStock: Math.max(0, Math.floor(Number(e.target.value) || 0)),
+                  })
+                }
               />
-              <Label htmlFor="sizeLSoldOut">Size L Sold Out</Label>
+              <p className="text-xs text-muted-foreground">
+                {formData.sizeLStock <= 0 ? "Sold out" : `${formData.sizeLStock} available`}
+              </p>
             </div>
           </div>
         </div>

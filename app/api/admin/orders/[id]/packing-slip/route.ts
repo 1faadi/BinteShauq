@@ -39,7 +39,7 @@ function currencyLabelFromStore(code: string | undefined): string {
 }
 
 function buildCustomerPhone(order: SlipOrder): string {
-  const parts = [order.phone, order.user.phone].filter(
+  const parts = [order.phone, order.user?.phone].filter(
     (v): v is string => typeof v === "string" && v.trim() !== "",
   )
   return parts.length > 0 ? parts.join(" · ") : ""
@@ -57,8 +57,8 @@ function buildOrderPayload(order: SlipOrder, currencyLabel: string): PackingSlip
     orderId: order.id,
     orderCreatedAt: order.createdAt,
     currencyLabel,
-    customerName: order.user.name ?? "Customer",
-    customerEmail: order.user.email,
+    customerName: order.user?.name ?? "Customer",
+    customerEmail: order.user?.email ?? order.guestEmail ?? "",
     customerPhone: buildCustomerPhone(order),
     shippingAddress: order.shippingAddress,
     notes: order.notes,
