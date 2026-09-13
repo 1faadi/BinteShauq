@@ -10,6 +10,10 @@ import { ArrowLeft, Package, Calendar, MapPin, Phone } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { toast } from "sonner"
+import {
+  formatDeliveryChargeLabel,
+  getOrderMoneyBreakdown,
+} from "@/lib/order-money"
 
 interface OrderItem {
   id: string
@@ -28,6 +32,7 @@ interface Order {
   id: string
   status: string
   total: number
+  deliveryChargePkr?: number
   paymentMethod: string
   paymentStatus: string
   shippingAddress: string
@@ -133,6 +138,8 @@ export default function OrderDetailsPage(): React.ReactElement | null {
     )
   }
 
+  const money = getOrderMoneyBreakdown(order)
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
       <div className="mb-8">
@@ -189,9 +196,19 @@ export default function OrderDetailsPage(): React.ReactElement | null {
             <CardHeader>
               <CardTitle>Total</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-lg font-semibold">Rs. {order.total.toLocaleString()}</p>
-              <p className="text-sm text-muted-foreground mt-1">Includes delivery</p>
+            <CardContent className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Subtotal</span>
+                <span>Rs. {money.subtotal.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Delivery</span>
+                <span>{formatDeliveryChargeLabel(money.deliveryChargePkr)}</span>
+              </div>
+              <div className="flex justify-between text-lg font-semibold pt-1 border-t">
+                <span>Total</span>
+                <span>Rs. {money.total.toLocaleString()}</span>
+              </div>
             </CardContent>
           </Card>
           <Card>

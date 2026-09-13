@@ -15,8 +15,10 @@ export function PurchasePolicyNotice({
   return (
     <div className={className}>
       <p className="text-sm text-muted-foreground leading-relaxed">
-        {policy.deliveryEstimateText}. Delivery charge: Rs.{" "}
-        {policy.deliveryChargePkr.toLocaleString()}.
+        {policy.deliveryEstimateText}.{" "}
+        {policy.deliveryChargePkr > 0
+          ? `Delivery charge: Rs. ${policy.deliveryChargePkr.toLocaleString()}.`
+          : "Delivery is free."}
       </p>
       <p className="text-sm text-muted-foreground leading-relaxed mt-2">
         {formatCodAdvanceCopy(policy)}

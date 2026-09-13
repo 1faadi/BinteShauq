@@ -133,6 +133,7 @@ model Order {
   guestEmail      String?
   status          OrderStatus @default(PENDING)
   total           Int
+  deliveryChargePkr Int     @default(0) // snapshot of delivery fee at order time (PKR)
   paymentMethod   String
   paymentStatus   String      @default("PENDING")
   shippingAddress String
@@ -188,6 +189,7 @@ model StoreSettings {
   requireEmailVerification Boolean  @default(false)
   enableNotifications      Boolean  @default(true)
   lowStockThreshold        Int      @default(10)
+  deliveryChargeEnabled    Boolean  @default(true) // When false, cart/checkout add Rs. 0
   deliveryChargePkr        Int      @default(300) // Nationwide delivery (PKR), editable in admin
   currency                 String   @default("PKR")
   timezone                 String   @default("Asia/Karachi")

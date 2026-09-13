@@ -179,6 +179,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             userId: session?.user?.id ?? null,
             guestEmail: session?.user?.id ? null : guestEmail,
             total,
+            deliveryChargePkr,
             paymentMethod,
             paymentStatus: "PENDING",
             shippingAddress,

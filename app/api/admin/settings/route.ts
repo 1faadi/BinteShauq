@@ -53,9 +53,16 @@ export async function PUT(request: NextRequest) {
       requireEmailVerification: !!body.requireEmailVerification,
       enableNotifications: !!body.enableNotifications,
       lowStockThreshold: Number(body.lowStockThreshold ?? 10),
+      deliveryChargeEnabled:
+        body.deliveryChargeEnabled === undefined
+          ? (existing?.deliveryChargeEnabled ?? true)
+          : !!body.deliveryChargeEnabled,
       deliveryChargePkr: (() => {
+        if (body.deliveryChargePkr === undefined || body.deliveryChargePkr === null) {
+          return existing?.deliveryChargePkr ?? 300
+        }
         const raw = Number(body.deliveryChargePkr)
-        if (!Number.isFinite(raw)) return 300
+        if (!Number.isFinite(raw)) return existing?.deliveryChargePkr ?? 300
         return Math.max(0, Math.floor(raw))
       })(),
       currency: body.currency,
@@ -95,6 +102,55 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json(settings)
   } catch (e) {
     return NextResponse.json({ error: "Failed to save settings" }, { status: 500 })
+  }
+}
+
+export async function PATCH(request: NextRequest): Promise<NextResponse> {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session || session.user?.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const body: unknown = await request.json()
+    if (body === null || typeof body !== "object") {
+      return NextResponse.json({ error: "Invalid body" }, { status: 400 })
+    }
+    const payload = body as Record<string, unknown>
+
+    const existing = await prisma.storeSettings.findFirst()
+    if (!existing) {
+      return NextResponse.json({ error: "Store settings not found" }, { status: 404 })
+    }
+
+    const data: {
+      deliveryChargeEnabled?: boolean
+      deliveryChargePkr?: number
+    } = {}
+
+    if (payload.deliveryChargeEnabled !== undefined) {
+      data.deliveryChargeEnabled = !!payload.deliveryChargeEnabled
+    }
+    if (payload.deliveryChargePkr !== undefined) {
+      const raw = Number(payload.deliveryChargePkr)
+      if (!Number.isFinite(raw)) {
+        return NextResponse.json({ error: "Invalid delivery charge" }, { status: 400 })
+      }
+      data.deliveryChargePkr = Math.max(0, Math.floor(raw))
+    }
+
+    if (Object.keys(data).length === 0) {
+      return NextResponse.json({ error: "No delivery fields to update" }, { status: 400 })
+    }
+
+    const settings = await prisma.storeSettings.update({
+      where: { id: existing.id },
+      data,
+    })
+
+    return NextResponse.json(settings)
+  } catch {
+    return NextResponse.json({ error: "Failed to update delivery settings" }, { status: 500 })
   }
 }
 

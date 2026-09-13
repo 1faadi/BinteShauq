@@ -58,6 +58,7 @@ type AdminSettingsForm = {
   requireEmailVerification: boolean
   enableNotifications: boolean
   lowStockThreshold: number
+  deliveryChargeEnabled: boolean
   deliveryChargePkr: number
   currency: string
   timezone: string
@@ -102,6 +103,7 @@ const DEFAULT_ADMIN_SETTINGS: AdminSettingsForm = {
   requireEmailVerification: false,
   enableNotifications: true,
   lowStockThreshold: 10,
+  deliveryChargeEnabled: true,
   deliveryChargePkr: 300,
   currency: "PKR",
   timezone: "Asia/Karachi",
@@ -180,6 +182,10 @@ export default function AdminSettings() {
             typeof row.lowStockThreshold === "number" && !Number.isNaN(row.lowStockThreshold)
               ? row.lowStockThreshold
               : prev.lowStockThreshold,
+          deliveryChargeEnabled:
+            typeof row.deliveryChargeEnabled === "boolean"
+              ? row.deliveryChargeEnabled
+              : prev.deliveryChargeEnabled,
           deliveryChargePkr:
             typeof row.deliveryChargePkr === "number" && !Number.isNaN(row.deliveryChargePkr)
               ? Math.max(0, Math.floor(row.deliveryChargePkr))
@@ -927,7 +933,7 @@ export default function AdminSettings() {
               Regional Settings
             </CardTitle>
             <CardDescription>
-              Currency, delivery fee (PKR), and timezone
+              Currency and timezone
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -938,27 +944,6 @@ export default function AdminSettings() {
                 value={settings.currency}
                 onChange={(e) => handleInputChange("currency", e.target.value)}
               />
-            </div>
-
-            <div>
-              <Label htmlFor="deliveryChargePkr">Delivery charge (PKR)</Label>
-              <Input
-                id="deliveryChargePkr"
-                type="number"
-                min={0}
-                step={1}
-                value={settings.deliveryChargePkr}
-                onChange={(e) => {
-                  const n = Number.parseInt(e.target.value, 10)
-                  handleInputChange(
-                    "deliveryChargePkr",
-                    Number.isNaN(n) ? 0 : Math.max(0, n)
-                  )
-                }}
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Added to cart and checkout totals (nationwide delivery)
-              </p>
             </div>
 
             <div>

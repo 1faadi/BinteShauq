@@ -28,6 +28,10 @@ import Link from "next/link"
 import Image from "next/image"
 import { toast } from "sonner"
 import { getOrderCustomer } from "@/lib/order-customer"
+import {
+  formatDeliveryChargeLabel,
+  getOrderMoneyBreakdown,
+} from "@/lib/order-money"
 
 interface OrderDetail {
   id: string
@@ -40,6 +44,7 @@ interface OrderDetail {
   phone?: string
   notes?: string
   guestEmail?: string | null
+  deliveryChargePkr?: number
   createdAt: string
   updatedAt: string
   user: {
@@ -249,6 +254,7 @@ export default function AdminOrderDetailPage() {
   }
 
   const customer = getOrderCustomer(order)
+  const money = getOrderMoneyBreakdown(order)
 
   return (
     <div className="space-y-6">
@@ -344,16 +350,16 @@ export default function AdminOrderDetailPage() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal</span>
-                  <span>Rs. {order.total.toLocaleString()}</span>
+                  <span>Rs. {money.subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>Shipping</span>
-                  <span>Free</span>
+                  <span>Delivery</span>
+                  <span>{formatDeliveryChargeLabel(money.deliveryChargePkr)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total</span>
-                  <span>Rs. {order.total.toLocaleString()}</span>
+                  <span>Rs. {money.total.toLocaleString()}</span>
                 </div>
               </div>
             </CardContent>

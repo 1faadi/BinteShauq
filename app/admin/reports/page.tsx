@@ -31,6 +31,7 @@ import {
   ShoppingCart,
 } from "lucide-react"
 import toast from "react-hot-toast"
+import { useAdminPending } from "@/components/admin/admin-pending"
 
 interface ReportData {
   period: string
@@ -56,37 +57,40 @@ export default function AdminReports() {
   const [period, setPeriod] = useState("30")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
+  const { runAction } = useAdminPending()
 
   const generateReport = async () => {
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Mock data for demonstration
-      const mockData: ReportData = {
-        period: `${period} days`,
-        totalSales: 125000,
-        totalOrders: 45,
-        totalUsers: 12,
-        topProducts: [
-          { name: "Elegant Beige Karandi Shawl", sales: 15, revenue: 45000 },
-          { name: "Midnight Blue Karandi Shawl", sales: 12, revenue: 36000 },
-          { name: "Sage Green Karandi Shawl", sales: 8, revenue: 24000 },
-          { name: "Cream White Karandi Shawl", sales: 6, revenue: 18000 },
-          { name: "Charcoal Gray Karandi Shawl", sales: 4, revenue: 12000 },
-        ],
-        salesByDay: [
-          { date: "2024-01-01", sales: 5000, orders: 2 },
-          { date: "2024-01-02", sales: 7500, orders: 3 },
-          { date: "2024-01-03", sales: 3200, orders: 1 },
-          { date: "2024-01-04", sales: 8900, orders: 4 },
-          { date: "2024-01-05", sales: 12000, orders: 5 },
-        ]
-      }
-      
-      setReportData(mockData)
-      toast.success("Report generated successfully")
+      await runAction(async () => {
+        // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+
+        // Mock data for demonstration
+        const mockData: ReportData = {
+          period: `${period} days`,
+          totalSales: 125000,
+          totalOrders: 45,
+          totalUsers: 12,
+          topProducts: [
+            { name: "Elegant Beige Karandi Shawl", sales: 15, revenue: 45000 },
+            { name: "Midnight Blue Karandi Shawl", sales: 12, revenue: 36000 },
+            { name: "Sage Green Karandi Shawl", sales: 8, revenue: 24000 },
+            { name: "Cream White Karandi Shawl", sales: 6, revenue: 18000 },
+            { name: "Charcoal Gray Karandi Shawl", sales: 4, revenue: 12000 },
+          ],
+          salesByDay: [
+            { date: "2024-01-01", sales: 5000, orders: 2 },
+            { date: "2024-01-02", sales: 7500, orders: 3 },
+            { date: "2024-01-03", sales: 3200, orders: 1 },
+            { date: "2024-01-04", sales: 8900, orders: 4 },
+            { date: "2024-01-05", sales: 12000, orders: 5 },
+          ],
+        }
+
+        setReportData(mockData)
+        toast.success("Report generated successfully")
+      })
     } catch (error) {
       toast.error("Failed to generate report")
     } finally {

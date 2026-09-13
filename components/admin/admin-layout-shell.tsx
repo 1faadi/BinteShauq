@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react"
 import { redirect } from "next/navigation"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
+import { AdminPendingProvider } from "@/components/admin/admin-pending"
 import { SidebarProvider, useSidebar } from "@/lib/sidebar-context"
 
 function AdminLayoutContent({
@@ -45,7 +46,9 @@ export function AdminLayoutShell({
 
   return (
     <SidebarProvider>
-      <AdminLayoutContent>{children}</AdminLayoutContent>
+      <AdminPendingProvider>
+        <AdminLayoutContent>{children}</AdminLayoutContent>
+      </AdminPendingProvider>
     </SidebarProvider>
   )
 }

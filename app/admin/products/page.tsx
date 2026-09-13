@@ -56,6 +56,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { DupattaShawlKind } from "@/lib/product-details"
 import { ProductPriceDisplay } from "@/components/product-price-display"
+import { AdminDeliveryChargeCard } from "@/components/admin-delivery-charge-card"
 
 interface Product {
   id: string
@@ -217,6 +218,8 @@ export default function AdminProducts() {
           </Dialog>
         </div>
       </div>
+
+      <AdminDeliveryChargeCard />
 
       {/* Search and Filters */}
       <Card>

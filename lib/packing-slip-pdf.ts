@@ -19,6 +19,8 @@ export interface PackingSlipOrderPayload {
   shippingAddress: string
   notes: string | null
   lines: PackingSlipProductLine[]
+  subtotal: number
+  deliveryChargePkr: number
   orderTotal: number
 }
 
@@ -180,7 +182,23 @@ function drawItemsTable(
   y += 6
   doc.moveTo(xItem, y).lineTo(contentLeft + contentWidth, y).strokeColor("#999999").stroke()
   y += 10
-  doc.font("Helvetica-Bold").fontSize(11).text("Order total", xUnit - 20, y)
+
+  const totalsX = xUnit - 20
+  doc.font("Helvetica").fontSize(9).fillColor("#222222")
+  doc.text("Subtotal", totalsX, y)
+  doc.text(formatMoney(order.subtotal, order.currencyLabel), xLine, y)
+  y += 14
+  doc.text("Delivery", totalsX, y)
+  doc.text(
+    order.deliveryChargePkr > 0
+      ? formatMoney(order.deliveryChargePkr, order.currencyLabel)
+      : "Free",
+    xLine,
+    y,
+  )
+  y += 16
+  doc.font("Helvetica-Bold").fontSize(11).fillColor("#111111")
+  doc.text("Order total", totalsX, y)
   doc.text(formatMoney(order.orderTotal, order.currencyLabel), xLine, y)
 
   return y + 22

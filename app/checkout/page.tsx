@@ -465,7 +465,11 @@ export default function CheckoutPage(): React.ReactElement | null {
                 </div>
                 <div className="flex justify-between">
                   <span>Delivery Charges</span>
-                  <span>Rs. {deliveryChargePkr.toLocaleString()}</span>
+                  <span>
+                    {deliveryChargePkr > 0
+                      ? `Rs. ${deliveryChargePkr.toLocaleString()}`
+                      : "Free"}
+                  </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-semibold text-lg">

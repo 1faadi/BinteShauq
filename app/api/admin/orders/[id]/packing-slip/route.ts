@@ -5,6 +5,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getStoreSettings } from "@/lib/settings"
+import { getOrderMoneyBreakdown } from "@/lib/order-money"
+import { getOrderCustomer } from "@/lib/order-customer"
 import {
   generatePackingSlipPdfBuffer,
   type PackingSlipBrandPayload,
@@ -52,18 +54,22 @@ function buildOrderPayload(order: SlipOrder, currencyLabel: string): PackingSlip
     unitPrice: item.price,
     lineTotal: item.price * item.quantity,
   }))
+  const money = getOrderMoneyBreakdown(order)
+  const customer = getOrderCustomer(order)
 
   return {
     orderId: order.id,
     orderCreatedAt: order.createdAt,
     currencyLabel,
-    customerName: order.user?.name ?? "Customer",
-    customerEmail: order.user?.email ?? order.guestEmail ?? "",
+    customerName: customer.name,
+    customerEmail: customer.email,
     customerPhone: buildCustomerPhone(order),
     shippingAddress: order.shippingAddress,
     notes: order.notes,
     lines,
-    orderTotal: order.total,
+    subtotal: money.subtotal,
+    deliveryChargePkr: money.deliveryChargePkr,
+    orderTotal: money.total,
   }
 }
 
