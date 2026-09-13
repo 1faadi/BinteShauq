@@ -32,18 +32,19 @@ function resolveMethod(input: RequestInfo | URL, init?: RequestInit): string {
   return "GET"
 }
 
-/** Mutations and known action GETs (downloads / uploads). */
+/** Mutations and known action GETs against app APIs only (skip Next.js RSC nav POSTs). */
 function shouldTrackAdminFetch(input: RequestInfo | URL, init?: RequestInit): boolean {
+  const url = resolveUrl(input)
+  if (!url.includes("/api/")) {
+    return false
+  }
+
   const method = resolveMethod(input, init)
   if (method !== "GET" && method !== "HEAD" && method !== "OPTIONS") {
     return true
   }
-  const url = resolveUrl(input)
-  return (
-    url.includes("/packing-slip") ||
-    url.includes("/api/upload") ||
-    url.includes("/cloudinary")
-  )
+
+  return url.includes("/packing-slip") || url.includes("/upload")
 }
 
 export function AdminPendingProvider({
