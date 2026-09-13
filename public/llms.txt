@@ -1,0 +1,29 @@
+# Bint-e-Shauq
+
+> Premium Pakistani women's clothing storefront at https://www.binteshauq.store — embroidered suits, kurtas, and seasonal collections. Founded by Sadia Ismail. Prices in PKR. Guest checkout is supported.
+
+Bint-e-Shauq (brand name; founder credit: Sadia Ismail) sells thoughtfully designed women's wear with a focus on embroidered suits, kurtas, and seasonal collections such as Winter ’25 Karandi shawl suits. Product pages use `/products/{slug}`; collection pages use `/collections/{slug}`. Private areas (`/admin`, `/cart`, `/checkout`, `/account`, `/orders`, `/auth`) are not intended for indexing. Full URL list for crawlers: the sitemap.
+
+## Pages
+
+- [Home](https://www.binteshauq.store/): Brand landing and featured products
+- [Shop](https://www.binteshauq.store/shop): Full catalog with filters
+- [New arrivals](https://www.binteshauq.store/new-arrivals): Latest products
+- [About](https://www.binteshauq.store/about): Brand and founder story
+- [Contact](https://www.binteshauq.store/contact): Customer contact
+- [FAQ](https://www.binteshauq.store/faq): Common questions
+- [Policies](https://www.binteshauq.store/policies): Store policies
+- [Size guide](https://www.binteshauq.store/size-guide): Sizing reference
+
+## Collections
+
+- [Karandi Shawl Suits](https://www.binteshauq.store/collections/karandi-shawl-suits): Winter ’25 Karandi shawl suits
+- [Blossom](https://www.binteshauq.store/collections/blossom): Blossom collection
+- [Linear](https://www.binteshauq.store/collections/linear): Linear collection
+- [Flora](https://www.binteshauq.store/collections/flora): Flora collection
+- [Stitched](https://www.binteshauq.store/collections/stitched): Stitched collection
+
+## Optional
+
+- [Sitemap](https://www.binteshauq.store/sitemap.xml): Machine-readable list of public URLs including product pages
+- [Robots](https://www.binteshauq.store/robots.txt): Crawl allow/disallow rules
