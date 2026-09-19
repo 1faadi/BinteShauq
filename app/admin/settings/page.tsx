@@ -851,7 +851,7 @@ export default function AdminSettings() {
               <div>
                 <Label htmlFor="maintenanceMode">Maintenance Mode</Label>
                 <p className="text-sm text-muted-foreground">
-                  Temporarily disable the store for maintenance
+                  Hide the storefront and products. Only admin login and dashboard stay available.
                 </p>
               </div>
               <Switch

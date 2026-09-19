@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
+import { revalidateTag } from "next/cache"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { MAINTENANCE_CACHE_TAG } from "@/lib/maintenance"
 import { prisma } from "@/lib/prisma"
 
 export async function GET() {
@@ -99,6 +101,7 @@ export async function PUT(request: NextRequest) {
           } as Parameters<typeof prisma.storeSettings.create>[0]["data"],
         })
 
+    revalidateTag(MAINTENANCE_CACHE_TAG)
     return NextResponse.json(settings)
   } catch (e) {
     return NextResponse.json({ error: "Failed to save settings" }, { status: 500 })

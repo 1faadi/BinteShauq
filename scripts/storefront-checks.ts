@@ -7,6 +7,7 @@ import {
   DEFAULT_COMMERCE_POLICY,
 } from "../lib/commerce-policy"
 import { absoluteUrl, BRAND_NAME } from "../lib/site"
+import { isMaintenanceBypassPath } from "../lib/maintenance"
 import { newsletterSchema, contactSchema } from "../lib/validators/forms"
 
 const sample =
@@ -34,6 +35,18 @@ assert.equal(requiredCodAdvance(40000, DEFAULT_COMMERCE_POLICY), 20000)
 
 assert.equal(absoluteUrl("/shop"), "https://www.binteshauq.store/shop")
 assert.equal(BRAND_NAME, "Bint-e-Shauq")
+
+assert.equal(isMaintenanceBypassPath("/admin"), true)
+assert.equal(isMaintenanceBypassPath("/admin/settings"), true)
+assert.equal(isMaintenanceBypassPath("/auth/signin"), true)
+assert.equal(isMaintenanceBypassPath("/auth/signup"), false)
+assert.equal(isMaintenanceBypassPath("/api/auth/session"), true)
+assert.equal(isMaintenanceBypassPath("/api/admin/settings"), true)
+assert.equal(isMaintenanceBypassPath("/maintenance"), true)
+assert.equal(isMaintenanceBypassPath("/"), false)
+assert.equal(isMaintenanceBypassPath("/shop"), false)
+assert.equal(isMaintenanceBypassPath("/products/foo"), false)
+assert.equal(isMaintenanceBypassPath("/api/products"), false)
 
 assert.equal(newsletterSchema.safeParse({ email: "bad" }).success, false)
 assert.equal(newsletterSchema.safeParse({ email: "a@b.com" }).success, true)

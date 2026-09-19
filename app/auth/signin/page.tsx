@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { signIn } from "next-auth/react"
+import { getSession, signIn } from "next-auth/react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,9 +31,10 @@ export default function SignInPage() {
         setIsLoading(false)
       } else {
         toast.success("Signed in successfully!")
-        // Hard reload so the server re-renders with the new session and the
-        // header/UI reflect the signed-in state immediately.
-        window.location.assign("/")
+        const session = await getSession()
+        // Admins land in the dashboard so they can exit maintenance mode.
+        const dest = session?.user?.role === "ADMIN" ? "/admin" : "/"
+        window.location.assign(dest)
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.")

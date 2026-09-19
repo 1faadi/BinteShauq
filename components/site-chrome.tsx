@@ -7,7 +7,8 @@ import { SiteFooter } from "@/components/site-footer"
 
 export function SiteChrome({ children }: { children: React.ReactNode }): React.ReactElement {
   const pathname = usePathname()
-  const hideChrome = pathname?.startsWith("/admin")
+  const hideChrome =
+    pathname?.startsWith("/admin") || pathname === "/maintenance"
 
   return (
     <>

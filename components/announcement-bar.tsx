@@ -1,7 +1,10 @@
 import Link from "next/link"
+import { getMaintenanceMode } from "@/lib/maintenance"
 import { getStoreSettings } from "@/lib/settings"
 
 export async function AnnouncementBar(): Promise<React.ReactElement | null> {
+  if (await getMaintenanceMode()) return null
+
   const settings = await getStoreSettings()
   if (!settings?.announcementEnabled) return null
   const text = settings.announcementText?.trim()
