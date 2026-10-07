@@ -121,7 +121,7 @@ export default async function SidebarSectionPage({ params, searchParams }: PageP
                   />
                   <Button size="sm" asChild>
                     <Link href={`/products/${product.slug}`}>
-                      View Details
+                      Add to Cart
                     </Link>
                   </Button>
                 </div>

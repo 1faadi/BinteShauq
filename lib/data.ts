@@ -1,4 +1,5 @@
 import type { Prisma, Product as PrismaProduct } from "@prisma/client"
+import { hasCompareAtSale } from "@/lib/compare-at-price"
 import { prisma } from "./prisma"
 import { cache } from "./cache"
 
@@ -238,6 +239,36 @@ export async function getFeaturedProducts(limit = 12): Promise<Product[]> {
     featured: true,
   })
   return items
+}
+
+/** In-stock products with an active compare-at sale for the live sale banner. */
+export async function getSaleProducts(limit = 12): Promise<Product[]> {
+  try {
+    const cacheKey = `sale-products-${limit}`
+    const cached = cache.get<Product[]>(cacheKey)
+    if (cached) return cached
+
+    // ponytail: filter in app; Prisma field-to-field compare needs raw SQL if this grows
+    const products = await prisma.product.findMany({
+      where: {
+        inStock: true,
+        compareAtPrice: { not: null },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: Math.max(limit * 3, 24),
+    })
+
+    const onSale = products
+      .filter((p) => hasCompareAtSale(p.price, p.compareAtPrice))
+      .slice(0, limit)
+      .map(mapProduct)
+
+    cache.set(cacheKey, onSale, 2 * 60 * 1000)
+    return onSale
+  } catch (error) {
+    console.error("Error fetching sale products:", error)
+    return []
+  }
 }
 
 export async function getProductsByCategories(): Promise<Product[]> {

@@ -21,6 +21,10 @@ import {
   Type,
   ImageIcon,
   FileText,
+  Plus,
+  Trash2,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react"
 import {
   Select,
@@ -35,6 +39,7 @@ import {
   HERO_FONT_SIZES_LINE2,
   HERO_FONT_WEIGHTS,
 } from "@/lib/hero-config"
+import { MAX_HERO_SLIDES, parseHeroSlides, type HeroSlide } from "@/lib/validators/forms"
 import toast from "react-hot-toast"
 
 type AdminSettingsForm = {
@@ -73,6 +78,7 @@ type AdminSettingsForm = {
   heroImageUrl: string
   heroButtonText: string
   heroButtonHref: string
+  heroSlides: HeroSlide[]
   homeAboutTitle: string
   homeAboutParagraph1: string
   homeAboutParagraph2: string
@@ -80,6 +86,14 @@ type AdminSettingsForm = {
   homeAboutButtonHref: string
   homeAboutImageUrl: string
   homeAboutImageAlt: string
+}
+
+const EMPTY_HERO_SLIDE: HeroSlide = {
+  imageUrl: "",
+  line1: "",
+  line2: "",
+  buttonText: "Shop New Arrivals",
+  buttonHref: "/new-arrivals",
 }
 
 const DEFAULT_ADMIN_SETTINGS: AdminSettingsForm = {
@@ -119,6 +133,16 @@ const DEFAULT_ADMIN_SETTINGS: AdminSettingsForm = {
   heroImageUrl: "",
   heroButtonText: "Shop New Arrivals",
   heroButtonHref: "/new-arrivals",
+  heroSlides: [
+    {
+      imageUrl: "",
+      line1: "Premium Pakistani Women's Clothing",
+      line2:
+        "Discover thoughtfully designed embroidered suits, kurtas and seasonal collections.",
+      buttonText: "Shop New Arrivals",
+      buttonHref: "/new-arrivals",
+    },
+  ],
   homeAboutTitle: "Stitching Stories of Grace",
   homeAboutParagraph1:
     "Our karandi shawls are crafted with the finest materials and traditional techniques, bringing together timeless elegance and modern comfort. Each piece is carefully selected to ensure the highest quality and authentic craftsmanship.",
@@ -133,7 +157,7 @@ const DEFAULT_ADMIN_SETTINGS: AdminSettingsForm = {
 export default function AdminSettings() {
   const [settings, setSettings] = useState<AdminSettingsForm>(DEFAULT_ADMIN_SETTINGS)
   const [isSaving, setIsSaving] = useState(false)
-  const [isUploadingHero, setIsUploadingHero] = useState(false)
+  const [uploadingSlideIndex, setUploadingSlideIndex] = useState<number | null>(null)
   const [isUploadingAboutImage, setIsUploadingAboutImage] = useState(false)
 
   useEffect(() => {
@@ -144,18 +168,39 @@ export default function AdminSettings() {
         const data: unknown = await res.json()
         if (!data || typeof data !== "object") return
         const row = data as Record<string, unknown>
+        const heroImageUrl = typeof row.heroImageUrl === "string" ? row.heroImageUrl : ""
+        const heroButtonText =
+          typeof row.heroButtonText === "string" && row.heroButtonText !== ""
+            ? row.heroButtonText
+            : DEFAULT_ADMIN_SETTINGS.heroButtonText
+        const heroButtonHref =
+          typeof row.heroButtonHref === "string" && row.heroButtonHref !== ""
+            ? row.heroButtonHref
+            : DEFAULT_ADMIN_SETTINGS.heroButtonHref
+        const heroLine1 =
+          typeof row.heroLine1 === "string" && row.heroLine1 !== ""
+            ? row.heroLine1
+            : DEFAULT_ADMIN_SETTINGS.heroLine1
+        const heroLine2 =
+          typeof row.heroLine2 === "string" && row.heroLine2 !== ""
+            ? row.heroLine2
+            : DEFAULT_ADMIN_SETTINGS.heroLine2
+        const heroSlides = parseHeroSlides(row.heroSlides, {
+          heroImageUrl,
+          heroLine1,
+          heroLine2,
+          heroButtonText,
+          heroButtonHref,
+        })
         setSettings((prev) => ({
           ...prev,
           ...row,
-          heroImageUrl: typeof row.heroImageUrl === "string" ? row.heroImageUrl : "",
-          heroButtonText:
-            typeof row.heroButtonText === "string" && row.heroButtonText !== ""
-              ? row.heroButtonText
-              : prev.heroButtonText,
-          heroButtonHref:
-            typeof row.heroButtonHref === "string" && row.heroButtonHref !== ""
-              ? row.heroButtonHref
-              : prev.heroButtonHref,
+          heroLine1,
+          heroLine2,
+          heroImageUrl,
+          heroButtonText,
+          heroButtonHref,
+          heroSlides,
           homeAboutTitle:
             typeof row.homeAboutTitle === "string" ? row.homeAboutTitle : prev.homeAboutTitle,
           homeAboutParagraph1:
@@ -257,10 +302,90 @@ export default function AdminSettings() {
     }))
   }
 
-  const handleHeroImageFile = async (fileList: FileList | null): Promise<void> => {
+  const updateHeroSlide = (index: number, patch: Partial<HeroSlide>): void => {
+    setSettings((prev) => {
+      const heroSlides = prev.heroSlides.map((slide, i) =>
+        i === index ? { ...slide, ...patch } : slide,
+      )
+      const first = heroSlides[0]
+      return {
+        ...prev,
+        heroSlides,
+        ...(first
+          ? {
+              heroImageUrl: first.imageUrl,
+              heroLine1: first.line1,
+              heroLine2: first.line2,
+              heroButtonText: first.buttonText,
+              heroButtonHref: first.buttonHref,
+            }
+          : {}),
+      }
+    })
+  }
+
+  const addHeroSlide = (): void => {
+    setSettings((prev) => {
+      if (prev.heroSlides.length >= MAX_HERO_SLIDES) return prev
+      return { ...prev, heroSlides: [...prev.heroSlides, { ...EMPTY_HERO_SLIDE }] }
+    })
+  }
+
+  const removeHeroSlide = (index: number): void => {
+    setSettings((prev) => {
+      if (prev.heroSlides.length <= 1) return prev
+      const heroSlides = prev.heroSlides.filter((_, i) => i !== index)
+      const first = heroSlides[0]
+      return {
+        ...prev,
+        heroSlides,
+        ...(first
+          ? {
+              heroImageUrl: first.imageUrl,
+              heroLine1: first.line1,
+              heroLine2: first.line2,
+              heroButtonText: first.buttonText,
+              heroButtonHref: first.buttonHref,
+            }
+          : {}),
+      }
+    })
+  }
+
+  const moveHeroSlide = (index: number, direction: -1 | 1): void => {
+    setSettings((prev) => {
+      const target = index + direction
+      if (target < 0 || target >= prev.heroSlides.length) return prev
+      const heroSlides = [...prev.heroSlides]
+      const current = heroSlides[index]
+      const swap = heroSlides[target]
+      if (!current || !swap) return prev
+      heroSlides[index] = swap
+      heroSlides[target] = current
+      const first = heroSlides[0]
+      return {
+        ...prev,
+        heroSlides,
+        ...(first
+          ? {
+              heroImageUrl: first.imageUrl,
+              heroLine1: first.line1,
+              heroLine2: first.line2,
+              heroButtonText: first.buttonText,
+              heroButtonHref: first.buttonHref,
+            }
+          : {}),
+      }
+    })
+  }
+
+  const handleHeroSlideImageFile = async (
+    index: number,
+    fileList: FileList | null,
+  ): Promise<void> => {
     const file = fileList?.[0]
     if (!file) return
-    setIsUploadingHero(true)
+    setUploadingSlideIndex(index)
     try {
       const fd = new FormData()
       fd.append("file", file)
@@ -277,13 +402,13 @@ export default function AdminSettings() {
         "url" in payload &&
         typeof (payload as { url: unknown }).url === "string"
       ) {
-        handleInputChange("heroImageUrl", (payload as { url: string }).url)
+        updateHeroSlide(index, { imageUrl: (payload as { url: string }).url })
         toast.success("Hero image uploaded")
       }
     } catch {
       toast.error("Failed to upload hero image")
     } finally {
-      setIsUploadingHero(false)
+      setUploadingSlideIndex(null)
     }
   }
 
@@ -342,124 +467,120 @@ export default function AdminSettings() {
               Home Page Hero
             </CardTitle>
             <CardDescription>
-              Background image, headline, subheadline, and primary button on the home page
+              Carousel slides for the home hero — shared typography, then per-slide image and copy
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Line 1 (Main Headline)</Label>
-                <Input
-                  value={settings.heroLine1}
-                  onChange={(e) => handleInputChange("heroLine1", e.target.value)}
-                  placeholder="e.g. Premium Women's Wear"
-                />
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Font</Label>
-                    <Select
-                      value={settings.heroFontFamily1}
-                      onValueChange={(v) => handleInputChange("heroFontFamily1", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {HERO_FONT_FAMILIES.map((f) => (
-                          <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Size</Label>
-                    <Select
-                      value={settings.heroFontSize1}
-                      onValueChange={(v) => handleInputChange("heroFontSize1", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {HERO_FONT_SIZES_LINE1.map((s) => (
-                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Weight</Label>
-                    <Select
-                      value={settings.heroFontWeight1}
-                      onValueChange={(v) => handleInputChange("heroFontWeight1", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {HERO_FONT_WEIGHTS.map((w) => (
-                          <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+            <div>
+              <Label className="text-base">Shared typography</Label>
+              <p className="text-sm text-muted-foreground mb-3">
+                Applies to headline and subheadline on every slide
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm">Headline (line 1)</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Font</Label>
+                      <Select
+                        value={settings.heroFontFamily1}
+                        onValueChange={(v) => handleInputChange("heroFontFamily1", v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HERO_FONT_FAMILIES.map((f) => (
+                            <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Size</Label>
+                      <Select
+                        value={settings.heroFontSize1}
+                        onValueChange={(v) => handleInputChange("heroFontSize1", v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HERO_FONT_SIZES_LINE1.map((s) => (
+                            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Weight</Label>
+                      <Select
+                        value={settings.heroFontWeight1}
+                        onValueChange={(v) => handleInputChange("heroFontWeight1", v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HERO_FONT_WEIGHTS.map((w) => (
+                            <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Line 2 (Subheadline)</Label>
-                <Input
-                  value={settings.heroLine2}
-                  onChange={(e) => handleInputChange("heroLine2", e.target.value)}
-                  placeholder="e.g. Karandi Shawls"
-                />
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Font</Label>
-                    <Select
-                      value={settings.heroFontFamily2}
-                      onValueChange={(v) => handleInputChange("heroFontFamily2", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {HERO_FONT_FAMILIES.map((f) => (
-                          <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Size</Label>
-                    <Select
-                      value={settings.heroFontSize2}
-                      onValueChange={(v) => handleInputChange("heroFontSize2", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {HERO_FONT_SIZES_LINE2.map((s) => (
-                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Weight</Label>
-                    <Select
-                      value={settings.heroFontWeight2}
-                      onValueChange={(v) => handleInputChange("heroFontWeight2", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {HERO_FONT_WEIGHTS.map((w) => (
-                          <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <div className="space-y-2">
+                  <Label className="text-sm">Subheadline (line 2)</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Font</Label>
+                      <Select
+                        value={settings.heroFontFamily2}
+                        onValueChange={(v) => handleInputChange("heroFontFamily2", v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HERO_FONT_FAMILIES.map((f) => (
+                            <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Size</Label>
+                      <Select
+                        value={settings.heroFontSize2}
+                        onValueChange={(v) => handleInputChange("heroFontSize2", v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HERO_FONT_SIZES_LINE2.map((s) => (
+                            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Weight</Label>
+                      <Select
+                        value={settings.heroFontWeight2}
+                        onValueChange={(v) => handleInputChange("heroFontWeight2", v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HERO_FONT_WEIGHTS.map((w) => (
+                            <SelectItem key={w.value} value={w.value}>{w.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -468,68 +589,142 @@ export default function AdminSettings() {
             <Separator />
 
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                <Label className="text-base">Hero background image</Label>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Paste a full image URL (Cloudinary works), or a path under{" "}
-                <code className="rounded bg-muted px-1 py-0.5 text-xs">public</code> such as{" "}
-                <code className="rounded bg-muted px-1 py-0.5 text-xs">/karandi-shawl-back.jpg</code>.
-                Leave blank to use the default image.
-              </p>
-              <Input
-                value={settings.heroImageUrl}
-                onChange={(e) => handleInputChange("heroImageUrl", e.target.value)}
-                placeholder="/karandi-shawl-back.jpg"
-              />
-              <div className="flex flex-wrap items-center gap-2">
-                <Button type="button" variant="outline" size="sm" disabled={isUploadingHero} asChild>
-                  <label className="cursor-pointer">
-                    {isUploadingHero ? "Uploading…" : "Upload to Cloudinary"}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="sr-only"
-                      disabled={isUploadingHero}
-                      onChange={(e) => {
-                        void handleHeroImageFile(e.target.files)
-                        e.target.value = ""
-                      }}
-                    />
-                  </label>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                  <Label className="text-base">Carousel slides</Label>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addHeroSlide}
+                  disabled={settings.heroSlides.length >= MAX_HERO_SLIDES}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add slide
                 </Button>
               </div>
-              {settings.heroImageUrl !== "" ? (
-                <div className="relative mt-2 aspect-[21/9] max-h-52 w-full max-w-3xl overflow-hidden rounded-md border bg-muted">
-                  <Image
-                    src={settings.heroImageUrl}
-                    alt="Hero preview"
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 768px"
-                  />
-                </div>
-              ) : null}
+              <p className="text-sm text-muted-foreground">
+                Up to {MAX_HERO_SLIDES} slides. Paste a Cloudinary URL or path under{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">public</code>, or upload.
+              </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <div className="space-y-2">
-                  <Label>Button label</Label>
-                  <Input
-                    value={settings.heroButtonText}
-                    onChange={(e) => handleInputChange("heroButtonText", e.target.value)}
-                    placeholder="Shop Now"
-                  />
+              {settings.heroSlides.map((slide, index) => (
+                <div key={index} className="rounded-md border p-4 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <Label className="font-medium">Slide {index + 1}</Label>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        disabled={index === 0}
+                        onClick={() => moveHeroSlide(index, -1)}
+                        aria-label="Move slide up"
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        disabled={index >= settings.heroSlides.length - 1}
+                        onClick={() => moveHeroSlide(index, 1)}
+                        aria-label="Move slide down"
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        disabled={settings.heroSlides.length <= 1}
+                        onClick={() => removeHeroSlide(index)}
+                        aria-label="Remove slide"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Image URL</Label>
+                    <Input
+                      value={slide.imageUrl}
+                      onChange={(e) => updateHeroSlide(index, { imageUrl: e.target.value })}
+                      placeholder="/karandi-shawl-back.jpg"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={uploadingSlideIndex === index}
+                      asChild
+                    >
+                      <label className="cursor-pointer">
+                        {uploadingSlideIndex === index ? "Uploading…" : "Upload to Cloudinary"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="sr-only"
+                          disabled={uploadingSlideIndex === index}
+                          onChange={(e) => {
+                            void handleHeroSlideImageFile(index, e.target.files)
+                            e.target.value = ""
+                          }}
+                        />
+                      </label>
+                    </Button>
+                    {slide.imageUrl !== "" ? (
+                      <div className="relative mt-2 aspect-[21/9] max-h-40 w-full max-w-2xl overflow-hidden rounded-md border bg-muted">
+                        <Image
+                          src={slide.imageUrl}
+                          alt={`Slide ${index + 1} preview`}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, 640px"
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Headline</Label>
+                      <Input
+                        value={slide.line1}
+                        onChange={(e) => updateHeroSlide(index, { line1: e.target.value })}
+                        placeholder="e.g. Premium Women's Wear"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Subheadline</Label>
+                      <Input
+                        value={slide.line2}
+                        onChange={(e) => updateHeroSlide(index, { line2: e.target.value })}
+                        placeholder="e.g. Karandi Shawls"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Button label</Label>
+                      <Input
+                        value={slide.buttonText}
+                        onChange={(e) => updateHeroSlide(index, { buttonText: e.target.value })}
+                        placeholder="Shop Now"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Button link</Label>
+                      <Input
+                        value={slide.buttonHref}
+                        onChange={(e) => updateHeroSlide(index, { buttonHref: e.target.value })}
+                        placeholder="/shop"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Button link</Label>
-                  <Input
-                    value={settings.heroButtonHref}
-                    onChange={(e) => handleInputChange("heroButtonHref", e.target.value)}
-                    placeholder="/shop"
-                  />
-                </div>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>

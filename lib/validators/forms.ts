@@ -1,5 +1,50 @@
 import { z } from "zod"
 
+export const MAX_HERO_SLIDES = 8
+
+export const heroSlideSchema = z.object({
+  imageUrl: z.string(),
+  line1: z.string(),
+  line2: z.string(),
+  buttonText: z.string(),
+  buttonHref: z.string(),
+})
+
+export const heroSlidesSchema = z.array(heroSlideSchema).max(MAX_HERO_SLIDES)
+
+export type HeroSlide = z.infer<typeof heroSlideSchema>
+
+function asTrimmedString(value: unknown): string {
+  return typeof value === "string" ? value.trim() : ""
+}
+
+/** Normalize raw JSON / legacy hero fields into validated slides. */
+export function parseHeroSlides(
+  raw: unknown,
+  legacy?: {
+    heroImageUrl?: string | null
+    heroLine1?: string | null
+    heroLine2?: string | null
+    heroButtonText?: string | null
+    heroButtonHref?: string | null
+  },
+): HeroSlide[] {
+  const parsed = heroSlidesSchema.safeParse(raw)
+  if (parsed.success && parsed.data.length > 0) {
+    return parsed.data
+  }
+
+  return [
+    {
+      imageUrl: asTrimmedString(legacy?.heroImageUrl),
+      line1: asTrimmedString(legacy?.heroLine1),
+      line2: asTrimmedString(legacy?.heroLine2),
+      buttonText: asTrimmedString(legacy?.heroButtonText),
+      buttonHref: asTrimmedString(legacy?.heroButtonHref),
+    },
+  ]
+}
+
 export const newsletterSchema = z.object({
   email: z.string().email("Enter a valid email address"),
 })

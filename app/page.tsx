@@ -3,9 +3,9 @@ import type { Metadata } from "next"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, Truck, RefreshCw, Banknote, MessageCircle } from "lucide-react"
-import { getProductImage, getFeaturedProducts, getProducts, type Product } from "@/lib/data"
+import { getProductImage, getFeaturedProducts, getProducts, getSaleProducts, type Product } from "@/lib/data"
 import { getSidebarSections } from "@/lib/sidebar"
-import { getHeroSettings, getHomeAboutSectionSettings, getStoreSettings } from "@/lib/settings"
+import { getHeroSlides, getHomeAboutSectionSettings, getStoreSettings } from "@/lib/settings"
 import { ProductPriceDisplay } from "@/components/product-price-display"
 import { ProductImage } from "@/components/product-image"
 import { NewsletterForm } from "@/components/newsletter-form"
@@ -13,7 +13,8 @@ import { MainSidebar } from "@/components/main-sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { SidebarWrapper } from "@/components/sidebar-wrapper"
 import { SessionProvider } from "@/components/session-provider"
-import { homepageHeroImageUrl } from "@/lib/cloudinary-url"
+import { LiveSaleBanner } from "@/components/live-sale-banner"
+import { HeroCarousel } from "@/components/hero-carousel"
 import { buildPageMetadata, jsonLdScript } from "@/lib/seo/metadata"
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo/json-ld"
 import { DEFAULT_META } from "@/lib/site"
@@ -47,20 +48,28 @@ function resolvedText(raw: string | null | undefined, fallback: string): string 
 
 export default async function HomePage(): Promise<React.ReactElement> {
   let featuredProducts: Product[] = []
+  let saleProducts: Product[] = []
   let sidebarSections: Awaited<ReturnType<typeof getSidebarSections>> = []
-  let heroSettings: Awaited<ReturnType<typeof getHeroSettings>> = null
+  let heroSlidesResult: Awaited<ReturnType<typeof getHeroSlides>> = null
   let homeAboutSettings: Awaited<ReturnType<typeof getHomeAboutSectionSettings>> = null
   let storeSettings: Awaited<ReturnType<typeof getStoreSettings>> = null
 
   try {
-    ;[featuredProducts, sidebarSections, heroSettings, homeAboutSettings, storeSettings] =
-      await Promise.all([
-        getFeaturedProducts(),
-        getSidebarSections(),
-        getHeroSettings(),
-        getHomeAboutSectionSettings(),
-        getStoreSettings(),
-      ])
+    ;[
+      featuredProducts,
+      saleProducts,
+      sidebarSections,
+      heroSlidesResult,
+      homeAboutSettings,
+      storeSettings,
+    ] = await Promise.all([
+      getFeaturedProducts(),
+      getSaleProducts(12),
+      getSidebarSections(),
+      getHeroSlides(),
+      getHomeAboutSectionSettings(),
+      getStoreSettings(),
+    ])
     if (featuredProducts.length === 0) {
       const fallback = await getProducts({ sort: "newest", limit: 8 })
       featuredProducts = fallback.items
@@ -69,21 +78,19 @@ export default async function HomePage(): Promise<React.ReactElement> {
     console.error("Error fetching homepage data:", error)
   }
 
-  const heroLine1 = resolvedText(
-    heroSettings?.heroLine1,
-    "Premium Pakistani Women's Clothing"
-  )
-  const heroLine2 = resolvedText(
-    heroSettings?.heroLine2,
-    "Discover thoughtfully designed embroidered suits, kurtas and seasonal collections created for timeless everyday elegance."
-  )
-  const trimmedHeroImageUrl =
-    typeof heroSettings?.heroImageUrl === "string" ? heroSettings.heroImageUrl.trim() : ""
-  const heroImageSrc = homepageHeroImageUrl(
-    trimmedHeroImageUrl !== "" ? trimmedHeroImageUrl : "/karandi-shawl-back.jpg"
-  )
-  const heroButtonText = heroSettings?.heroButtonText?.trim() || "Shop New Arrivals"
-  const heroButtonHref = heroSettings?.heroButtonHref?.trim() || "/new-arrivals"
+  const heroSlides = heroSlidesResult?.slides ?? []
+
+  const liveSaleItems = saleProducts
+    .filter(
+      (p): p is Product & { compareAtPrice: number } =>
+        typeof p.compareAtPrice === "number",
+    )
+    .map((p) => ({
+      name: p.name,
+      slug: p.slug,
+      price: p.price,
+      compareAtPrice: p.compareAtPrice,
+    }))
 
   const homeAboutTitle = resolvedText(homeAboutSettings?.homeAboutTitle, DEFAULT_HOME_ABOUT_TITLE)
   const homeAboutP1 = resolvedText(homeAboutSettings?.homeAboutParagraph1, DEFAULT_HOME_ABOUT_P1)
@@ -121,50 +128,8 @@ export default async function HomePage(): Promise<React.ReactElement> {
         <SidebarWrapper>
           <MainSidebar sections={sidebarSections} />
           <SidebarInset>
-            <section className="relative w-full min-h-[70vh] md:min-h-[85vh] overflow-hidden">
-              <ProductImage
-                src={heroImageSrc}
-                alt=""
-                fill
-                priority
-                optimize={false}
-                sizes="100vw"
-                className="object-cover object-center"
-              />
-              <div
-                className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/10"
-                aria-hidden
-              />
-              <div className="relative z-10 flex min-h-[70vh] md:min-h-[85vh] items-center px-6 md:px-12 lg:px-16 xl:px-20 py-16 md:py-20">
-                <div className="max-w-xl space-y-6 md:space-y-8">
-                  <div className="space-y-3 md:space-y-4">
-                    <h1 className="text-white text-3xl md:text-5xl font-light tracking-tight leading-tight drop-shadow-sm">
-                      {heroLine1}
-                    </h1>
-                    <p className="text-white/90 text-base md:text-lg leading-relaxed drop-shadow-sm">
-                      {heroLine2}
-                    </p>
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-3 pt-2 md:pt-4">
-                    <Button
-                      size="lg"
-                      asChild
-                      className="uppercase tracking-wider text-sm md:text-base px-6 md:px-8 py-5 md:py-6 bg-black text-white hover:bg-black/90"
-                    >
-                      <Link href={heroButtonHref}>{heroButtonText}</Link>
-                    </Button>
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      asChild
-                      className="border-white text-white bg-transparent hover:bg-white/10"
-                    >
-                      <Link href="/shop">Explore the Collection</Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </section>
+            <LiveSaleBanner items={liveSaleItems} />
+            <HeroCarousel slides={heroSlides} />
 
             <div className="mx-auto max-w-6xl px-4">
               <section className="py-8 md:py-16 border-t" aria-labelledby="featured-heading">
@@ -218,7 +183,7 @@ export default async function HomePage(): Promise<React.ReactElement> {
                                 size="md"
                               />
                               <Button size="sm" asChild>
-                                <Link href={`/products/${product.slug}`}>View Details</Link>
+                                <Link href={`/products/${product.slug}`}>Add to Cart</Link>
                               </Button>
                             </div>
                           </CardContent>

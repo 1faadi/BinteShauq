@@ -215,6 +215,7 @@ model StoreSettings {
   heroImageUrl             String?  // Full URL or site path e.g. /karandi-shawl-back.jpg
   heroButtonText           String?  // CTA label on hero
   heroButtonHref           String?  // CTA link e.g. /shop
+  heroSlides               Json?    // [{ imageUrl, line1, line2, buttonText, buttonHref }]
   // Home page “About our collection” block
   homeAboutTitle           String?
   homeAboutParagraph1      String?

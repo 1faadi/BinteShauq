@@ -8,7 +8,13 @@ import {
 } from "../lib/commerce-policy"
 import { absoluteUrl, BRAND_NAME } from "../lib/site"
 import { isMaintenanceBypassPath } from "../lib/maintenance"
-import { newsletterSchema, contactSchema } from "../lib/validators/forms"
+import {
+  newsletterSchema,
+  contactSchema,
+  parseHeroSlides,
+  heroSlidesSchema,
+  MAX_HERO_SLIDES,
+} from "../lib/validators/forms"
 
 const sample =
   "https://res.cloudinary.com/demo/image/upload/v123/folder/photo.jpg"
@@ -67,5 +73,42 @@ assert.equal(
   }).success,
   true
 )
+
+const legacySlide = parseHeroSlides(null, {
+  heroImageUrl: "/hero.jpg",
+  heroLine1: "Headline",
+  heroLine2: "Sub",
+  heroButtonText: "Shop",
+  heroButtonHref: "/shop",
+})
+assert.equal(legacySlide.length, 1)
+assert.equal(legacySlide[0]?.imageUrl, "/hero.jpg")
+assert.equal(legacySlide[0]?.line1, "Headline")
+
+const multi = parseHeroSlides([
+  {
+    imageUrl: "/a.jpg",
+    line1: "A",
+    line2: "B",
+    buttonText: "Go",
+    buttonHref: "/a",
+  },
+  {
+    imageUrl: "/b.jpg",
+    line1: "C",
+    line2: "D",
+    buttonText: "Go",
+    buttonHref: "/b",
+  },
+])
+assert.equal(multi.length, 2)
+assert.equal(multi[1]?.line1, "C")
+assert.equal(heroSlidesSchema.safeParse(Array(MAX_HERO_SLIDES + 1).fill({
+  imageUrl: "",
+  line1: "",
+  line2: "",
+  buttonText: "",
+  buttonHref: "",
+})).success, false)
 
 console.log("All storefront unit checks passed")

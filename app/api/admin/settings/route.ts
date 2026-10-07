@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { MAINTENANCE_CACHE_TAG } from "@/lib/maintenance"
 import { prisma } from "@/lib/prisma"
+import { heroSlidesSchema } from "@/lib/validators/forms"
 
 export async function GET() {
   try {
@@ -81,6 +82,21 @@ export async function PUT(request: NextRequest) {
     if (body.heroImageUrl !== undefined) data.heroImageUrl = body.heroImageUrl
     if (body.heroButtonText !== undefined) data.heroButtonText = body.heroButtonText
     if (body.heroButtonHref !== undefined) data.heroButtonHref = body.heroButtonHref
+    if (body.heroSlides !== undefined) {
+      const slidesResult = heroSlidesSchema.safeParse(body.heroSlides)
+      if (!slidesResult.success) {
+        return NextResponse.json({ error: "Invalid hero slides" }, { status: 400 })
+      }
+      data.heroSlides = slidesResult.data
+      const first = slidesResult.data[0]
+      if (first) {
+        data.heroImageUrl = first.imageUrl
+        data.heroLine1 = first.line1
+        data.heroLine2 = first.line2
+        data.heroButtonText = first.buttonText
+        data.heroButtonHref = first.buttonHref
+      }
+    }
     if (body.homeAboutTitle !== undefined) data.homeAboutTitle = body.homeAboutTitle
     if (body.homeAboutParagraph1 !== undefined) data.homeAboutParagraph1 = body.homeAboutParagraph1
     if (body.homeAboutParagraph2 !== undefined) data.homeAboutParagraph2 = body.homeAboutParagraph2
