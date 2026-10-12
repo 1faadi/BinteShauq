@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useId, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { useCart } from "@/lib/cart-context"
 import { useRouter } from "next/navigation"
@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, Building2, Banknote } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -38,20 +37,15 @@ export default function CheckoutPage(): React.ReactElement | null {
     DEFAULT_COMMERCE_POLICY.deliveryChargePkr
   )
   const [policy, setPolicy] = useState<CommercePolicy>(DEFAULT_COMMERCE_POLICY)
-  const [policyAccepted, setPolicyAccepted] = useState(false)
   const [hasTrackedCheckout, setHasTrackedCheckout] = useState(false)
   const idempotencyKeyRef = useRef(newIdempotencyKey())
-  const policyCheckboxId = useId()
 
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    name: "",
     email: "",
     phone: "",
     address: "",
     city: "",
-    state: "",
-    zipCode: "",
     country: "Pakistan",
     notes: "",
   })
@@ -115,12 +109,7 @@ export default function CheckoutPage(): React.ReactElement | null {
   }
 
   const handlePlaceOrder = async (): Promise<void> => {
-    if (!policyAccepted) {
-      toast.error("Please acknowledge the COD and exchange policies")
-      return
-    }
-
-    const requiredFields = ["firstName", "lastName", "email", "phone", "address", "city"] as const
+    const requiredFields = ["name", "phone", "address", "city"] as const
     const missingFields = requiredFields.filter((field) => !formData[field].trim())
 
     if (missingFields.length > 0) {
@@ -131,6 +120,8 @@ export default function CheckoutPage(): React.ReactElement | null {
     setIsProcessing(true)
 
     try {
+      const email = formData.email.trim()
+      const addressLine = `${formData.name}, ${formData.address}, ${formData.city}, ${formData.country}`
       const orderData = {
         items: items.map((item) => ({
           productId: item.productId,
@@ -138,13 +129,12 @@ export default function CheckoutPage(): React.ReactElement | null {
           size: item.size,
         })),
         paymentMethod,
-        shippingAddress: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`,
-        billingAddress: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}, ${formData.country}`,
+        shippingAddress: addressLine,
+        billingAddress: addressLine,
         phone: formData.phone,
         notes: formData.notes,
-        guestEmail: session?.user?.id ? undefined : formData.email.trim(),
+        guestEmail: session?.user?.id || !email ? undefined : email,
         idempotencyKey: idempotencyKeyRef.current,
-        policyAccepted: true,
       }
 
       const response = await fetch("/api/orders", {
@@ -185,9 +175,14 @@ export default function CheckoutPage(): React.ReactElement | null {
         const emailQ = encodeURIComponent(
           (session?.user?.email || formData.email || "").trim().toLowerCase()
         )
-        router.push(
-          emailQ ? `/orders/${result.id}?email=${emailQ}` : `/orders/${result.id}`
-        )
+        if (session?.user || emailQ) {
+          router.push(
+            emailQ ? `/orders/${result.id}?email=${emailQ}` : `/orders/${result.id}`
+          )
+        } else {
+          toast.message(`Your order ID is ${result.id}`)
+          router.push("/")
+        }
       } else {
         const error: unknown = await response.json()
         const message =
@@ -238,45 +233,28 @@ export default function CheckoutPage(): React.ReactElement | null {
               <CardTitle>Shipping Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="firstName">First Name *</Label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="lastName">Last Name *</Label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
+              <div>
+                <Label htmlFor="name">Name *</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                  autoComplete="name"
+                />
               </div>
 
               <div>
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   name="email"
                   type="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  required
                   autoComplete="email"
                 />
-                {!session?.user ? (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    We&apos;ll use this to confirm your guest order.
-                  </p>
-                ) : null}
               </div>
 
               <div>
@@ -311,27 +289,6 @@ export default function CheckoutPage(): React.ReactElement | null {
                     value={formData.city}
                     onChange={handleInputChange}
                     required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="state">State</Label>
-                  <Input
-                    id="state"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="zipCode">Zip Code</Label>
-                  <Input
-                    id="zipCode"
-                    name="zipCode"
-                    value={formData.zipCode}
-                    onChange={handleInputChange}
                   />
                 </div>
                 <div>
@@ -482,25 +439,11 @@ export default function CheckoutPage(): React.ReactElement | null {
 
               <PurchasePolicyNotice policy={policy} />
 
-              <div className="flex items-start gap-2">
-                <Checkbox
-                  id={policyCheckboxId}
-                  checked={policyAccepted}
-                  onCheckedChange={(checked) => setPolicyAccepted(checked === true)}
-                />
-                <Label
-                  htmlFor={policyCheckboxId}
-                  className="text-sm font-normal leading-snug cursor-pointer"
-                >
-                  I understand the COD advance requirements and exchange policy (no refunds).
-                </Label>
-              </div>
-
               <Button
                 className="w-full"
                 size="lg"
                 onClick={() => void handlePlaceOrder()}
-                disabled={isProcessing || !policyAccepted}
+                disabled={isProcessing}
               >
                 {isProcessing
                   ? "Processing..."

@@ -54,14 +54,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       typeof payload.guestEmail === "string" ? payload.guestEmail.trim().toLowerCase() : ""
     const idempotencyKey =
       typeof payload.idempotencyKey === "string" ? payload.idempotencyKey : undefined
-    const policyAccepted = payload.policyAccepted === true
-
-    if (!policyAccepted) {
-      return NextResponse.json(
-        { error: "Please acknowledge the COD and exchange policies" },
-        { status: 400 }
-      )
-    }
 
     if (!["cod", "bank_transfer"].includes(paymentMethod)) {
       return NextResponse.json({ error: "Invalid payment method" }, { status: 400 })
@@ -69,13 +61,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (!shippingAddress.trim() || !phone.trim()) {
       return NextResponse.json({ error: "Shipping address and phone are required" }, { status: 400 })
-    }
-
-    if (!session?.user?.id && !guestEmail) {
-      return NextResponse.json(
-        { error: "Email is required for guest checkout" },
-        { status: 400 }
-      )
     }
 
     if (!Array.isArray(items) || items.length === 0 || !items.every(isOrderItemInput)) {
@@ -177,7 +162,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         return tx.order.create({
           data: {
             userId: session?.user?.id ?? null,
-            guestEmail: session?.user?.id ? null : guestEmail,
+            guestEmail: session?.user?.id ? null : guestEmail || null,
             total,
             deliveryChargePkr,
             paymentMethod,
