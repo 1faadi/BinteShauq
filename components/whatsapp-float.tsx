@@ -2,6 +2,7 @@
 
 import type { ReactElement } from "react"
 
+/** Floating chat CTA — +92 336 7577218 */
 const WHATSAPP_HREF = "https://wa.me/923367577218"
 
 export function WhatsAppFloat(): ReactElement {
