@@ -11,6 +11,7 @@ import { SessionProvider } from "@/components/session-provider"
 import { CartProvider } from "@/lib/cart-context"
 import { Toaster } from "@/components/ui/sonner"
 import { MetaPixel } from "@/components/meta-pixel"
+import { MetaPixelBoot } from "@/components/meta-pixel-boot"
 import { TopProgressBar } from "@/components/top-progress-bar"
 import { AnnouncementBar } from "@/components/announcement-bar"
 import { buildPageMetadata } from "@/lib/seo/metadata"
@@ -89,6 +90,7 @@ export default function RootLayout({
           </CartProvider>
         </SessionProvider>
         <Analytics />
+        <MetaPixelBoot />
         <MetaPixel />
       </body>
     </html>

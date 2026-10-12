@@ -1,5 +1,5 @@
 import { DEFAULT_CURRENCY } from "@/lib/site"
-import { trackMetaEvent } from "@/lib/meta-pixel"
+import { trackMetaEvent, type MetaEventParams } from "@/lib/meta-pixel"
 
 export type AnalyticsItem = {
   item_id: string
@@ -45,16 +45,27 @@ export function trackAnalytics(
     begin_checkout: "InitiateCheckout",
     purchase: "Purchase",
     search: "Search",
+    newsletter_signup: "CompleteRegistration",
+    contact_support: "Lead",
   }
   const metaEvent = metaMap[event]
-  if (metaEvent) {
-    trackMetaEvent(metaEvent, {
-      content_ids: payload.items?.map((i) => i.item_id),
-      content_type: "product",
-      contents: toMetaContents(payload.items),
-      value: payload.value,
-      currency: currency as "PKR",
-      num_items: payload.items?.reduce((s, i) => s + (i.quantity ?? 1), 0),
-    })
+  if (!metaEvent) return
+
+  const params: MetaEventParams = {
+    currency: currency as "PKR",
   }
+
+  if (payload.items?.length) {
+    params.content_ids = payload.items.map((i) => i.item_id)
+    params.content_type = "product"
+    params.contents = toMetaContents(payload.items)
+    params.num_items = payload.items.reduce((s, i) => s + (i.quantity ?? 1), 0)
+    const name = payload.items[0]?.item_name
+    if (name) params.content_name = name
+  }
+  if (typeof payload.value === "number") params.value = payload.value
+  if (payload.search_term) params.search_string = payload.search_term
+  if (payload.transaction_id) params.order_id = payload.transaction_id
+
+  trackMetaEvent(metaEvent, params)
 }

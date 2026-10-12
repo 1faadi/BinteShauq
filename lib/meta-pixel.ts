@@ -19,6 +19,12 @@ export type MetaEventParams = {
   currency?: typeof META_CURRENCY
   value?: number
   num_items?: number
+  order_id?: string
+  search_string?: string
+}
+
+export type MetaTrackOptions = {
+  eventID?: string
 }
 
 function getFbq(): Fbq | undefined {
@@ -26,9 +32,22 @@ function getFbq(): Fbq | undefined {
   return (window as Window & { fbq?: Fbq }).fbq
 }
 
-export function trackMetaEvent(event: string, params?: MetaEventParams): void {
+/** Shared browser ↔ CAPI dedupe key (Meta event_id / eventID). */
+export function purchaseEventId(orderId: string): string {
+  return orderId
+}
+
+export function trackMetaEvent(
+  event: string,
+  params?: MetaEventParams,
+  options?: MetaTrackOptions
+): void {
   const fbq = getFbq()
   if (!fbq) return
+  if (options?.eventID) {
+    fbq("track", event, params ?? {}, { eventID: options.eventID })
+    return
+  }
   if (params) {
     fbq("track", event, params)
     return
@@ -109,18 +128,24 @@ export function trackPurchase(order: {
 }): void {
   if (!claimPurchaseTracking(order.id)) return
 
-  trackMetaEvent("Purchase", {
-    content_ids: order.items.map((item) => item.id),
-    content_type: "product",
-    contents: order.items.map((item) => ({
-      id: item.id,
-      quantity: item.quantity,
-      item_price: item.price,
-    })),
-    num_items: order.items.reduce((sum, item) => sum + item.quantity, 0),
-    value: order.total,
-    currency: META_CURRENCY,
-  })
+  const eventID = purchaseEventId(order.id)
+  trackMetaEvent(
+    "Purchase",
+    {
+      content_ids: order.items.map((item) => item.id),
+      content_type: "product",
+      contents: order.items.map((item) => ({
+        id: item.id,
+        quantity: item.quantity,
+        item_price: item.price,
+      })),
+      num_items: order.items.reduce((sum, item) => sum + item.quantity, 0),
+      value: order.total,
+      currency: META_CURRENCY,
+      order_id: order.id,
+    },
+    { eventID }
+  )
 }
 
 // ponytail: assert-based self-check (no test framework)
@@ -135,4 +160,5 @@ if (process.env.NODE_ENV === "test") {
   console.assert(claimPurchaseTracking("o1", storage) === true)
   console.assert(claimPurchaseTracking("o1", storage) === false)
   console.assert(purchaseDedupeKey("abc") === "meta_purchase_abc")
+  console.assert(purchaseEventId("ord_1") === "ord_1")
 }

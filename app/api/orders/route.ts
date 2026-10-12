@@ -12,6 +12,8 @@ import {
   type ProductSize,
 } from "@/lib/inventory"
 import { invalidateCachesAfterProductMutation } from "@/lib/invalidate-product-cache"
+import { sendPurchaseCapi } from "@/lib/meta-capi"
+import { SITE_URL } from "@/lib/site"
 
 type OrderItemInput = {
   productId: string
@@ -68,8 +70,32 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     if (idempotencyKey) {
-      const existing = await prisma.order.findUnique({ where: { idempotencyKey } })
+      const existing = await prisma.order.findUnique({
+        where: { idempotencyKey },
+        include: { items: true },
+      })
       if (existing) {
+        const emailForCapi =
+          session?.user?.email?.trim().toLowerCase() || guestEmail || null
+        void sendPurchaseCapi({
+          orderId: existing.id,
+          total: existing.total,
+          items: existing.items.map((line) => ({
+            id: line.productId,
+            quantity: line.quantity,
+            price: line.price,
+          })),
+          email: emailForCapi,
+          phone: existing.phone,
+          clientIp:
+            request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+            request.headers.get("x-real-ip") ||
+            null,
+          userAgent: request.headers.get("user-agent"),
+          fbp: request.cookies.get("_fbp")?.value ?? null,
+          fbc: request.cookies.get("_fbc")?.value ?? null,
+          eventSourceUrl: `${SITE_URL}/checkout`,
+        })
         return NextResponse.json({
           message: "Order already created",
           id: existing.id,
@@ -201,6 +227,34 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       } catch {
         // cache invalidation is best-effort
       }
+
+      const emailForCapi =
+        session?.user?.email?.trim().toLowerCase() || guestEmail || null
+      const fbp = request.cookies.get("_fbp")?.value ?? null
+      const fbc = request.cookies.get("_fbc")?.value ?? null
+      const forwarded = request.headers.get("x-forwarded-for")
+      const clientIp =
+        forwarded?.split(",")[0]?.trim() ||
+        request.headers.get("x-real-ip") ||
+        null
+      const userAgent = request.headers.get("user-agent")
+
+      void sendPurchaseCapi({
+        orderId: order.id,
+        total: order.total,
+        items: order.items.map((line) => ({
+          id: line.productId,
+          quantity: line.quantity,
+          price: line.price,
+        })),
+        email: emailForCapi,
+        phone,
+        clientIp,
+        userAgent,
+        fbp,
+        fbc,
+        eventSourceUrl: `${SITE_URL}/checkout`,
+      })
 
       return NextResponse.json({
         message: "Order created successfully",

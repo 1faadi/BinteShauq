@@ -1,6 +1,11 @@
 import assert from "node:assert/strict"
 import { cloudinaryUrl, productCardImageUrl } from "../lib/cloudinary-url"
-import { purchaseDedupeKey, claimPurchaseTracking } from "../lib/meta-pixel"
+import {
+  purchaseDedupeKey,
+  claimPurchaseTracking,
+  purchaseEventId,
+} from "../lib/meta-pixel"
+import { normalizePhoneForMeta } from "../lib/meta-capi"
 import {
   formatCodAdvanceCopy,
   requiredCodAdvance,
@@ -25,6 +30,9 @@ assert.equal(cloudinaryUrl("/local.jpg", { width: 100 }), "/local.jpg")
 assert.ok(productCardImageUrl(sample).includes("w_600"))
 
 assert.equal(purchaseDedupeKey("abc"), "meta_purchase_abc")
+assert.equal(purchaseEventId("ord_9"), "ord_9")
+assert.equal(normalizePhoneForMeta("03001234567"), "923001234567")
+assert.equal(normalizePhoneForMeta("+92 300 1234567"), "923001234567")
 const mem = new Map<string, string>()
 const storage = {
   getItem: (k: string) => mem.get(k) ?? null,

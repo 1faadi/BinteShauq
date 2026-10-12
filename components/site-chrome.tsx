@@ -4,6 +4,7 @@ import type React from "react"
 import { usePathname } from "next/navigation"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
+import { WhatsAppFloat } from "@/components/whatsapp-float"
 
 export function SiteChrome({ children }: { children: React.ReactNode }): React.ReactElement {
   const pathname = usePathname()
@@ -15,6 +16,7 @@ export function SiteChrome({ children }: { children: React.ReactNode }): React.R
       {!hideChrome && <SiteHeader />}
       <main id="main-content">{children}</main>
       {!hideChrome && <SiteFooter />}
+      {!hideChrome && <WhatsAppFloat />}
     </>
   )
 }
