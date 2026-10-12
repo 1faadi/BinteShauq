@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { toast } from "sonner"
-import { trackAddToCart } from "@/lib/meta-pixel"
 import { trackAnalytics } from "@/lib/analytics"
 
 interface CartItem {
@@ -99,11 +98,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       if (response.ok) {
         await loadCartItems()
-        trackAddToCart({
-          id: product.id,
-          name: product.name,
-          price: product.price,
-        })
         trackAnalytics("add_to_cart", {
           value: product.price,
           items: [
