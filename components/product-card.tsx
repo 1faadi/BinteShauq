@@ -1,10 +1,10 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
-import { useCart } from "@/lib/cart-context"
 import { ShoppingCart, Eye } from "lucide-react"
 import { ProductPriceDisplay } from "@/components/product-price-display"
 import { ProductImage } from "@/components/product-image"
@@ -22,7 +22,6 @@ export type ProductCardProps = {
 }
 
 export function ProductCard({
-  id,
   slug,
   name,
   price,
@@ -32,9 +31,16 @@ export function ProductCard({
   className,
   showAddToCart = true,
 }: ProductCardProps): React.ReactElement {
+  const router = useRouter()
   const [isHovered, setIsHovered] = useState(false)
   const [current, setCurrent] = useState(0)
-  const { addToCart, isLoading } = useCart()
+  const productHref = `/products/${slug}`
+
+  const goToProduct = (e: React.MouseEvent): void => {
+    e.preventDefault()
+    e.stopPropagation()
+    router.push(productHref)
+  }
 
   const displayImages =
     images && images.length > 0
@@ -50,23 +56,9 @@ export function ProductCard({
     return () => clearInterval(timer)
   }, [isHovered, displayImages.length])
 
-  const handleAddToCart = async (e: React.MouseEvent): Promise<void> => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    if (typeof price === "number") {
-      await addToCart({
-        id,
-        name,
-        price,
-        image: image || "/placeholder.svg",
-      })
-    }
-  }
-
   return (
     <div className={cn("group", className)}>
-      <Link href={`/products/${slug}`} className="block">
+      <Link href={productHref} className="block">
         <div
           className="aspect-[3/4] w-full overflow-hidden border relative"
           onMouseEnter={() => setIsHovered(true)}
@@ -119,8 +111,8 @@ export function ProductCard({
             {showAddToCart && typeof price === "number" ? (
               <Button
                 size="sm"
-                onClick={(e) => void handleAddToCart(e)}
-                disabled={isLoading}
+                type="button"
+                onClick={goToProduct}
                 className="bg-white text-black hover:bg-gray-100"
               >
                 <ShoppingCart className="h-4 w-4 mr-1" />
@@ -129,7 +121,9 @@ export function ProductCard({
             ) : null}
             <Button
               size="sm"
+              type="button"
               variant="outline"
+              onClick={goToProduct}
               className="bg-white/90 text-black hover:bg-white"
             >
               <Eye className="h-4 w-4 mr-1" />
@@ -152,15 +146,11 @@ export function ProductCard({
         </div>
 
         {showAddToCart && typeof price === "number" ? (
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={(e) => void handleAddToCart(e)}
-            disabled={isLoading}
-          >
-            <ShoppingCart className="h-4 w-4 mr-1" />
-            {isLoading ? "Adding..." : "Add to Cart"}
+          <Button variant="outline" size="sm" className="w-full" asChild>
+            <Link href={productHref}>
+              <ShoppingCart className="h-4 w-4 mr-1" />
+              Add to Cart
+            </Link>
           </Button>
         ) : null}
       </div>
