@@ -182,12 +182,82 @@
   animation: wa-blink 1.6s ease-in-out infinite;
 }
 
+@keyframes order-success-ring-in {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes order-success-circle-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes order-success-tick-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes order-success-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.order-success-ring {
+  color: var(--success);
+  background: color-mix(in oklch, var(--success) 12%, transparent);
+  animation: order-success-ring-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.order-success-circle {
+  stroke-dasharray: 151;
+  stroke-dashoffset: 151;
+  animation: order-success-circle-draw 0.55s ease forwards 0.15s;
+}
+
+.order-success-tick {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: order-success-tick-draw 0.4s ease forwards 0.55s;
+}
+
+.order-success-fade {
+  opacity: 0;
+  animation: order-success-fade-up 0.5s ease forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee {
     animation: none;
   }
   .whatsapp-float {
     animation: none;
+  }
+  .order-success-ring,
+  .order-success-circle,
+  .order-success-tick,
+  .order-success-fade {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
   }
 }
 

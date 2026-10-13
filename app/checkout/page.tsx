@@ -18,6 +18,7 @@ import { toast } from "sonner"
 import { trackAnalytics } from "@/lib/analytics"
 import { trackPurchase } from "@/lib/meta-pixel"
 import { PurchasePolicyNotice } from "@/components/purchase-policy-notice"
+import { OrderPlacedSuccess } from "@/components/order-placed-success"
 import { DEFAULT_COMMERCE_POLICY, type CommercePolicy } from "@/lib/commerce-policy"
 
 function newIdempotencyKey(): string {
@@ -38,6 +39,10 @@ export default function CheckoutPage(): React.ReactElement | null {
   )
   const [policy, setPolicy] = useState<CommercePolicy>(DEFAULT_COMMERCE_POLICY)
   const [hasTrackedCheckout, setHasTrackedCheckout] = useState(false)
+  const [placedOrder, setPlacedOrder] = useState<{
+    id: string
+    email: string
+  } | null>(null)
   const idempotencyKeyRef = useRef(newIdempotencyKey())
 
   const [formData, setFormData] = useState({
@@ -59,10 +64,10 @@ export default function CheckoutPage(): React.ReactElement | null {
   }, [session?.user?.email])
 
   useEffect(() => {
-    if (items.length === 0) {
+    if (items.length === 0 && !placedOrder) {
       router.push("/cart")
     }
-  }, [items, router])
+  }, [items, router, placedOrder])
 
   useEffect(() => {
     if (items.length === 0 || hasTrackedCheckout) return
@@ -170,19 +175,12 @@ export default function CheckoutPage(): React.ReactElement | null {
           total: result.order?.total ?? getTotalPrice() + deliveryChargePkr,
           items: placedItems,
         })
+        const placedEmail = (session?.user?.email || formData.email || "")
+          .trim()
+          .toLowerCase()
         await clearCart()
-        toast.success("Order placed successfully!")
-        const emailQ = encodeURIComponent(
-          (session?.user?.email || formData.email || "").trim().toLowerCase()
-        )
-        if (session?.user || emailQ) {
-          router.push(
-            emailQ ? `/orders/${result.id}?email=${emailQ}` : `/orders/${result.id}`
-          )
-        } else {
-          toast.message(`Your order ID is ${result.id}`)
-          router.push("/")
-        }
+        setPlacedOrder({ id: result.id, email: placedEmail })
+        window.scrollTo({ top: 0, behavior: "smooth" })
       } else {
         const error: unknown = await response.json()
         const message =
@@ -201,6 +199,18 @@ export default function CheckoutPage(): React.ReactElement | null {
     } finally {
       setIsProcessing(false)
     }
+  }
+
+  if (placedOrder) {
+    const emailQ = placedOrder.email
+      ? `?email=${encodeURIComponent(placedOrder.email)}`
+      : ""
+    const orderHref =
+      session?.user || placedOrder.email
+        ? `/orders/${placedOrder.id}${emailQ}`
+        : null
+
+    return <OrderPlacedSuccess orderId={placedOrder.id} orderHref={orderHref} />
   }
 
   if (items.length === 0) {
