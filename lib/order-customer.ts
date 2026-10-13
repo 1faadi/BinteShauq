@@ -1,9 +1,16 @@
 type OrderCustomerSource = {
   guestEmail?: string | null
+  shippingAddress?: string | null
   user?: {
     name?: string | null
     email?: string | null
   } | null
+}
+
+/** Checkout stores `${name}, ${address}, ${city}, ${country}` for guests. */
+function guestNameFromShippingAddress(shippingAddress?: string | null): string | null {
+  const name = shippingAddress?.split(",")[0]?.trim()
+  return name || null
 }
 
 export function getOrderCustomer(order: OrderCustomerSource): {
@@ -20,7 +27,7 @@ export function getOrderCustomer(order: OrderCustomerSource): {
   }
 
   return {
-    name: "Guest",
+    name: guestNameFromShippingAddress(order.shippingAddress) || "Guest",
     email: order.guestEmail ?? "",
     isGuest: true,
   }

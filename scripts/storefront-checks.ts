@@ -20,6 +20,7 @@ import {
   heroSlidesSchema,
   MAX_HERO_SLIDES,
 } from "../lib/validators/forms"
+import { getOrderCustomer } from "../lib/order-customer"
 
 const sample =
   "https://res.cloudinary.com/demo/image/upload/v123/folder/photo.jpg"
@@ -118,5 +119,24 @@ assert.equal(heroSlidesSchema.safeParse(Array(MAX_HERO_SLIDES + 1).fill({
   buttonText: "",
   buttonHref: "",
 })).success, false)
+
+assert.equal(
+  getOrderCustomer({
+    guestEmail: "a@b.com",
+    shippingAddress: "Ayesha Khan, Street 1, Karachi, Pakistan",
+  }).name,
+  "Ayesha Khan"
+)
+assert.equal(
+  getOrderCustomer({ guestEmail: "a@b.com", shippingAddress: null }).name,
+  "Guest"
+)
+assert.equal(
+  getOrderCustomer({
+    user: { name: "Sara", email: "s@b.com" },
+    shippingAddress: "Ignored, Addr",
+  }).isGuest,
+  false
+)
 
 console.log("All storefront unit checks passed")
